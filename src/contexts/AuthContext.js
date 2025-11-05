@@ -1,5 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
+
+
 
 const AuthContext = createContext();
 
@@ -49,9 +52,9 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('🔐 Starting login process for:', email);
       
-      const API_BASE_URL = 'https://gms-api.kmgarage.com';
+ 
       
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

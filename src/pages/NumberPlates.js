@@ -45,6 +45,8 @@ function NumberPlates() {
   });
   const navigate = useNavigate();
   const { user, token } = useAuth();
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
+
 
   // Fetch number plates when component mounts or when pagination/search changes
   useEffect(() => {
@@ -75,7 +77,7 @@ function NumberPlates() {
         params.append('search', searchTerm);
       }
 
-      const response = await fetch(`https://gms-api.kmgarage.com/api/number-plates?${params}`, {
+      const response = await fetch(`${BASE_URL}/api/number-plates?${params}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

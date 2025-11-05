@@ -1,7 +1,7 @@
 // src/services/api.js
 
-// Use the base URL directly since environment variables might not be loading
-const BASE_URL = 'https://gms-api.kmgarage.com';
+// Get base URL from environment variables
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
 
 export const authAPI = {
   login: async (email, password) => {

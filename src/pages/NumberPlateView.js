@@ -42,6 +42,7 @@ function NumberPlateView() {
   const [rejectReason, setRejectReason] = useState('');
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
 
   // Fetch number plate details by ID
   useEffect(() => {
@@ -84,7 +85,7 @@ function NumberPlateView() {
           limit: limit.toString()
         });
 
-        const response = await fetch(`https://gms-api.kmgarage.com/api/number-plates?${params}`, {
+        const response = await fetch(`${BASE_URL}/api/number-plates?${params}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -295,7 +296,7 @@ function NumberPlateView() {
     try {
       setActionLoading(true);
       
-      const response = await fetch(`https://gms-api.kmgarage.com/api/number-plates/${id}/approve`, {
+      const response = await fetch(`${BASE_URL}/api/number-plates/${id}/approve`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -324,7 +325,7 @@ function NumberPlateView() {
     try {
       setActionLoading(true);
       
-      const response = await fetch(`https://gms-api.kmgarage.com/api/number-plates/${id}/reject`, {
+      const response = await fetch(`${BASE_URL}/api/number-plates/${id}/reject`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
