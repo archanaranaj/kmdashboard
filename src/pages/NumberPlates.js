@@ -75,7 +75,7 @@ function NumberPlates() {
         params.append('search', searchTerm);
       }
 
-      const response = await fetch(`https://gms.kmgarage.com/api/number-plates?${params}`, {
+      const response = await fetch(`https://gms-api.kmgarage.com/api/number-plates?${params}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

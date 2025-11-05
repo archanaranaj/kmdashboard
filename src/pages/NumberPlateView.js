@@ -84,7 +84,7 @@ function NumberPlateView() {
           limit: limit.toString()
         });
 
-        const response = await fetch(`https://gms.kmgarage.com/api/number-plates?${params}`, {
+        const response = await fetch(`https://gms-api.kmgarage.com/api/number-plates?${params}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -295,7 +295,7 @@ function NumberPlateView() {
     try {
       setActionLoading(true);
       
-      const response = await fetch(`https://gms.kmgarage.com/api/number-plates/${id}/approve`, {
+      const response = await fetch(`https://gms-api.kmgarage.com/api/number-plates/${id}/approve`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -324,7 +324,7 @@ function NumberPlateView() {
     try {
       setActionLoading(true);
       
-      const response = await fetch(`https://gms.kmgarage.com/api/number-plates/${id}/reject`, {
+      const response = await fetch(`https://gms-api.kmgarage.com/api/number-plates/${id}/reject`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
