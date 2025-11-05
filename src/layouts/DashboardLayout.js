@@ -152,8 +152,10 @@ import {
   ExitToApp as GatePassIcon,
   ShoppingCart as PurchaseIcon,
   Menu as MenuIcon,
-  ChevronLeft as ChevronLeftIcon
+  ChevronLeft as ChevronLeftIcon,
+ QrCode as NumberPlateIcon
 } from '@mui/icons-material';
+
 import { useAuth } from '../contexts/AuthContext';
 import DashboardNavbar from '../components/DashboardNavbar';
 
@@ -168,15 +170,17 @@ import GatePassView from '../pages/GatePassView';
 import PurchaseRequisition from '../pages/PurchaseRequisition';
 import PurchaseRequisitionView from '../pages/PurchaseRequisitionView';
 import PurchaseRequisitionForm from '../pages/PurchaseRequisitionForm';
-
+import NumberPlates from '../pages/NumberPlates';
+import NumberPlateView from '../pages/NumberPlateView';
 const drawerWidth = 240;
 
 const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', roles: ['service_advisor', 'accounts'] },
-  { text: 'Job Cards', icon: <JobCardsIcon />, path: '/job-cards', roles: ['service_advisor', 'accounts'] },
-  { text: 'Cash Management', icon: <CashIcon />, path: '/cash-management', roles: ['accounts'] },
-  { text: 'Gate Pass', icon: <GatePassIcon />, path: '/gate-pass', roles: ['service_advisor'] },
-  { text: 'Purchase Requisition', icon: <PurchaseIcon />, path: '/purchase-requisition', roles: ['service_advisor'] },
+  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', roles: ['admin','service_advisor', 'accounts'] },
+  { text: 'Job Cards', icon: <JobCardsIcon />, path: '/job-cards', roles: ['admin','service_advisor', 'accounts'] },
+  { text: 'Cash Management', icon: <CashIcon />, path: '/cash-management', roles: ['admin','accounts'] },
+  { text: 'Gate Pass', icon: <GatePassIcon />, path: '/gate-pass', roles: ['admin','service_advisor'] },
+  { text: 'Purchase Requisition', icon: <PurchaseIcon />, path: '/purchase-requisition', roles: ['admin','service_advisor'] },
+ { text: 'Number Plates', icon: <NumberPlateIcon />, path: '/number-plates', roles: ['admin','service_advisor', 'accounts'] }
 ];
 
 function DashboardLayout() {
@@ -399,6 +403,8 @@ function DashboardLayout() {
             <Route path="/purchase-requisition/view/:id" element={<PurchaseRequisitionView />} />
             <Route path="/purchase-requisition/add" element={<PurchaseRequisitionForm />} />
             <Route path="/purchase-requisition/edit/:id" element={<PurchaseRequisitionForm />} />
+            <Route path="/number-plates" element={<NumberPlates />} />
+<Route path="/number-plates/view/:id" element={<NumberPlateView />} />
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
         </Box>

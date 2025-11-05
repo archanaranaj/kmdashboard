@@ -1,3 +1,4 @@
+// src/pages/Login.js
 import React, { useState } from 'react';
 import {
   Container,
@@ -7,6 +8,7 @@ import {
   Typography,
   Box,
   Alert,
+  CircularProgress,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,18 +24,29 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Basic validation
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both email and password');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
-    const result = login(email, password);
-    
-    if (result.success) {
-      navigate('/dashboard');
-    } else {
-      setError(result.error);
+    try {
+      const result = await login(email, password);
+      
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        setError(result.error);
+      }
+    } catch (error) {
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
@@ -79,6 +92,7 @@ function Login() {
                 autoFocus
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
               />
               <TextField
                 margin="normal"
@@ -91,6 +105,7 @@ function Login() {
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
               />
               <Button
                 type="submit"
@@ -99,21 +114,11 @@ function Login() {
                 sx={{ mt: 3, mb: 2 }}
                 disabled={loading}
               >
-                Sign In
+                {loading ? <CircularProgress size={24} /> : 'Sign In'}
               </Button>
             </Box>
 
-            <Box sx={{ mt: 2, textAlign: 'center' }}>
-              <Typography variant="body2" color="textSecondary">
-                Demo Credentials:
-              </Typography>
-              <Typography variant="body2">
-                Service Advisor: advisor1@kmgroup.com / password123
-              </Typography>
-              <Typography variant="body2">
-                Accounts: accounts@kmgroup.com / password123
-              </Typography>
-            </Box>
+
           </Box>
         </Card>
       </Box>
