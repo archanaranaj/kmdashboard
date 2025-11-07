@@ -1,3 +1,363 @@
+// import React, { useState, useEffect } from 'react';
+// import {
+//   Card,
+//   CardContent,
+//   Typography,
+//   Button,
+//   TextField,
+//   MenuItem,
+//   Box,
+//   Container,
+//   Paper,
+//   Grid
+// } from '@mui/material';
+// import { ArrowBack as ArrowBackIcon, Save as SaveIcon } from '@mui/icons-material';
+// import { useNavigate, useParams } from 'react-router-dom';
+
+// // Sample data - in real app, this would come from API/context
+// const sampleJobCards = [
+//   {
+//     id: 1,
+//     vehicleNumber: 'ABC-123',
+//     date: '2024-01-15',
+//     serviceAdvisor: 'John Doe',
+//     chassisNumber: 'CHS123456789',
+//     customerName: 'Alice Johnson',
+//     customerNumber: '+1234567890',
+//     customerEmail: 'alice@email.com',
+//     carMake: 'Toyota',
+//     carModel: 'Camry',
+//     carYear: '2022',
+//     insuranceName: 'ABC Insurance',
+//     jobDescription: 'Regular maintenance and oil change',
+//     promisedDate: '2024-01-17'
+//   },
+//   {
+//     id: 2,
+//     vehicleNumber: 'XYZ-789',
+//     date: '2024-01-16',
+//     serviceAdvisor: 'Jane Smith',
+//     chassisNumber: 'CHS987654321',
+//     customerName: 'Bob Brown',
+//     customerNumber: '+1987654321',
+//     customerEmail: 'bob@email.com',
+//     carMake: 'Honda',
+//     carModel: 'Civic',
+//     carYear: '2021',
+//     insuranceName: 'XYZ Insurance',
+//     jobDescription: 'Brake service and tire rotation',
+//     promisedDate: '2024-01-19'
+//   }
+// ];
+
+// const carMakes = ['Toyota', 'Honda', 'Ford', 'BMW', 'Mercedes', 'Audi', 'Hyundai', 'Kia'];
+// const insuranceCompanies = ['ABC Insurance', 'XYZ Insurance', 'Premium Insure', 'SecureCover', 'SafeGuard'];
+
+// function JobCardForm() {
+//   const navigate = useNavigate();
+//   const { id } = useParams();
+//   const isEditing = Boolean(id);
+
+//   // Form state
+//   const [formData, setFormData] = useState({
+//     vehicleNumber: '',
+//     date: new Date().toISOString().split('T')[0],
+//     serviceAdvisor: '',
+//     chassisNumber: '',
+//     customerName: '',
+//     customerNumber: '',
+//     customerEmail: '',
+//     carMake: '',
+//     carModel: '',
+//     carYear: '',
+//     insuranceName: '',
+//     jobDescription: '',
+//     promisedDate: ''
+//   });
+
+//   // Load job card data if editing
+//   useEffect(() => {
+//     if (isEditing) {
+//       const jobCard = sampleJobCards.find(card => card.id === parseInt(id));
+//       if (jobCard) {
+//         setFormData(jobCard);
+//       }
+//     }
+//   }, [id, isEditing]);
+
+//   const handleInputChange = (e) => {
+//     const { name, value } = e.target;
+//     setFormData(prev => ({
+//       ...prev,
+//       [name]: value
+//     }));
+//   };
+
+//   const handleSubmit = (e) => {
+//     e.preventDefault();
+//     // Here you would typically save to API
+//     console.log('Form submitted:', formData);
+    
+//     // Show success message and navigate back
+//     alert(isEditing ? 'Job card updated successfully!' : 'Job card created successfully!');
+//     navigate('/job-cards');
+//   };
+
+//   const handleCancel = () => {
+//     navigate('/job-cards');
+//   };
+
+//   return (
+//     <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5', py: 3 }}>
+//       <Container maxWidth="lg">
+//         {/* Header with Back Button */}
+//         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+//           <Button 
+//             startIcon={<ArrowBackIcon />} 
+//             onClick={handleCancel}
+//             variant="outlined"
+//             sx={{ mr: 2 }}
+//           >
+//             Back
+//           </Button>
+//           <Typography variant="h4" component="h1" fontWeight="bold" color="primary">
+//             {isEditing ? 'Edit Job Card' : 'Create New Job Card'}
+//           </Typography>
+//         </Box>
+
+//         <Card sx={{ boxShadow: 3 }}>
+//           <CardContent sx={{ p: 4 }}>
+//             <form onSubmit={handleSubmit}>
+//               <Grid container spacing={3}>
+//                 {/* Vehicle Information */}
+//                 <Grid item xs={12}>
+//                   <Paper sx={{ p: 3, backgroundColor: '#49a3f1', color: 'white' }}>
+//                     <Typography variant="h6" gutterBottom fontWeight="bold">
+//                       🚗 Vehicle Information
+//                     </Typography>
+//                   </Paper>
+//                 </Grid>
+
+//                 <Grid item xs={12} md={6}>
+//                   <TextField
+//                     label="Vehicle Number"
+//                     name="vehicleNumber"
+//                     value={formData.vehicleNumber}
+//                     onChange={handleInputChange}
+//                     fullWidth
+//                     required
+//                     variant="outlined"
+//                   />
+//                 </Grid>
+
+//                 <Grid item xs={12} md={6}>
+//                   <TextField
+//                     label="Date"
+//                     name="date"
+//                     type="date"
+//                     value={formData.date}
+//                     onChange={handleInputChange}
+//                     fullWidth
+//                     InputLabelProps={{ shrink: true }}
+//                     variant="outlined"
+//                   />
+//                 </Grid>
+
+//                 <Grid item xs={12} md={6}>
+//                   <TextField
+//                     label="Chassis Number"
+//                     name="chassisNumber"
+//                     value={formData.chassisNumber}
+//                     onChange={handleInputChange}
+//                     fullWidth
+//                     required
+//                     variant="outlined"
+//                   />
+//                 </Grid>
+
+//                 <Grid item xs={12} md={6}>
+//                   <TextField
+//                     label="Car Make"
+//                     name="carMake"
+//                     value={formData.carMake}
+//                     onChange={handleInputChange}
+//                     select
+//                     fullWidth
+//                     required
+//                     variant="outlined"
+//                   >
+//                     {carMakes.map(make => (
+//                       <MenuItem key={make} value={make}>{make}</MenuItem>
+//                     ))}
+//                   </TextField>
+//                 </Grid>
+
+//                 <Grid item xs={12} md={6}>
+//                   <TextField
+//                     label="Car Model"
+//                     name="carModel"
+//                     value={formData.carModel}
+//                     onChange={handleInputChange}
+//                     fullWidth
+//                     required
+//                     variant="outlined"
+//                   />
+//                 </Grid>
+
+//                 <Grid item xs={12} md={6}>
+//                   <TextField
+//                     label="Car Year"
+//                     name="carYear"
+//                     value={formData.carYear}
+//                     onChange={handleInputChange}
+//                     fullWidth
+//                     required
+//                     variant="outlined"
+//                   />
+//                 </Grid>
+
+//                 {/* Customer Information */}
+//                 <Grid item xs={12}>
+//                   <Paper sx={{ p: 3, backgroundColor: '#ee358bff', color: 'white', mt: 2 }}>
+//                     <Typography variant="h6" gutterBottom fontWeight="bold">
+//                       👤 Customer Information
+//                     </Typography>
+//                   </Paper>
+//                 </Grid>
+
+//                 <Grid item xs={12} md={6}>
+//                   <TextField
+//                     label="Customer Name"
+//                     name="customerName"
+//                     value={formData.customerName}
+//                     onChange={handleInputChange}
+//                     fullWidth
+//                     required
+//                     variant="outlined"
+//                   />
+//                 </Grid>
+
+//                 <Grid item xs={12} md={6}>
+//                   <TextField
+//                     label="Customer Number"
+//                     name="customerNumber"
+//                     value={formData.customerNumber}
+//                     onChange={handleInputChange}
+//                     fullWidth
+//                     required
+//                     variant="outlined"
+//                   />
+//                 </Grid>
+
+//                 <Grid item xs={12} md={6}>
+//                   <TextField
+//                     label="Customer Email"
+//                     name="customerEmail"
+//                     type="email"
+//                     value={formData.customerEmail}
+//                     onChange={handleInputChange}
+//                     fullWidth
+//                     variant="outlined"
+//                   />
+//                 </Grid>
+
+//                 <Grid item xs={12} md={6}>
+//                   <TextField
+//                     label="Insurance Name"
+//                     name="insuranceName"
+//                     value={formData.insuranceName}
+//                     onChange={handleInputChange}
+//                     select
+//                     fullWidth
+//                     variant="outlined"
+//                   >
+//                     {insuranceCompanies.map(company => (
+//                       <MenuItem key={company} value={company}>{company}</MenuItem>
+//                     ))}
+//                   </TextField>
+//                 </Grid>
+
+//                 {/* Service Information */}
+//                 <Grid item xs={12}>
+//                   <Paper sx={{ p: 3, backgroundColor: '#f1d32bff', color: 'white', mt: 2 }}>
+//                     <Typography variant="h6" gutterBottom fontWeight="bold">
+//                       🛠️ Service Information
+//                     </Typography>
+//                   </Paper>
+//                 </Grid>
+
+//                 <Grid item xs={12} md={6}>
+//                   <TextField
+//                     label="Service Advisor Name"
+//                     name="serviceAdvisor"
+//                     value={formData.serviceAdvisor}
+//                     onChange={handleInputChange}
+//                     fullWidth
+//                     required
+//                     variant="outlined"
+//                   />
+//                 </Grid>
+
+//                 <Grid item xs={12} md={6}>
+//                   <TextField
+//                     label="Promised Delivery Date"
+//                     name="promisedDate"
+//                     type="date"
+//                     value={formData.promisedDate}
+//                     onChange={handleInputChange}
+//                     fullWidth
+//                     InputLabelProps={{ shrink: true }}
+//                     required
+//                     variant="outlined"
+//                   />
+//                 </Grid>
+
+//                 <Grid item xs={12}>
+//                   <TextField
+//                     label="Job Description"
+//                     name="jobDescription"
+//                     value={formData.jobDescription}
+//                     onChange={handleInputChange}
+//                     multiline
+//                     rows={4}
+//                     fullWidth
+//                     required
+//                     variant="outlined"
+//                   />
+//                 </Grid>
+
+//                 {/* Action Buttons */}
+//                 <Grid item xs={12}>
+//                   <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 3 }}>
+//                     <Button 
+//                       onClick={handleCancel}
+//                       variant="outlined"
+//                       size="large"
+//                     >
+//                       Cancel
+//                     </Button>
+//                     <Button 
+//                       type="submit"
+//                       variant="contained"
+//                       size="large"
+//                       startIcon={<SaveIcon />}
+//                     >
+//                       {isEditing ? 'Update Job Card' : 'Create Job Card'}
+//                     </Button>
+//                   </Box>
+//                 </Grid>
+//               </Grid>
+//             </form>
+//           </CardContent>
+//         </Card>
+//       </Container>
+//     </Box>
+//   );
+// }
+
+// export default JobCardForm;
+
+
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -9,81 +369,188 @@ import {
   Box,
   Container,
   Paper,
-  Grid
+  Grid,
+  Alert,
+  CircularProgress
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, Save as SaveIcon } from '@mui/icons-material';
-import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Warning as WarningIcon } from '@mui/icons-material';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
-// Sample data - in real app, this would come from API/context
-const sampleJobCards = [
-  {
-    id: 1,
-    vehicleNumber: 'ABC-123',
-    date: '2024-01-15',
-    serviceAdvisor: 'John Doe',
-    chassisNumber: 'CHS123456789',
-    customerName: 'Alice Johnson',
-    customerNumber: '+1234567890',
-    customerEmail: 'alice@email.com',
-    carMake: 'Toyota',
-    carModel: 'Camry',
-    carYear: '2022',
-    insuranceName: 'ABC Insurance',
-    jobDescription: 'Regular maintenance and oil change',
-    promisedDate: '2024-01-17'
-  },
-  {
-    id: 2,
-    vehicleNumber: 'XYZ-789',
-    date: '2024-01-16',
-    serviceAdvisor: 'Jane Smith',
-    chassisNumber: 'CHS987654321',
-    customerName: 'Bob Brown',
-    customerNumber: '+1987654321',
-    customerEmail: 'bob@email.com',
-    carMake: 'Honda',
-    carModel: 'Civic',
-    carYear: '2021',
-    insuranceName: 'XYZ Insurance',
-    jobDescription: 'Brake service and tire rotation',
-    promisedDate: '2024-01-19'
-  }
-];
-
-const carMakes = ['Toyota', 'Honda', 'Ford', 'BMW', 'Mercedes', 'Audi', 'Hyundai', 'Kia'];
-const insuranceCompanies = ['ABC Insurance', 'XYZ Insurance', 'Premium Insure', 'SecureCover', 'SafeGuard'];
+const carMakes = ['Toyota', 'Honda', 'Ford', 'BMW', 'Mercedes', 'Audi', 'Hyundai', 'Kia', 'Nissan', 'Volkswagen'];
+const insuranceCompanies = ['ABC Insurance', 'XYZ Insurance', 'Premium Insure', 'SecureCover', 'SafeGuard', 'No Insurance'];
+const statusOptions = ['active', 'pending', 'completed', 'in_progress', 'delivered'];
 
 function JobCardForm() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const location = useLocation();
+  const { token, user } = useAuth();
   const isEditing = Boolean(id);
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
+
+  const plateData = location.state?.plateData;
+
+  // Check if user is service advisor
+  const isServiceAdvisor = user?.role === 'service_advisor' || user?.role === 'advisor' || user?.isServiceAdvisor;
 
   // Form state
   const [formData, setFormData] = useState({
-    vehicleNumber: '',
+    vehicle_number: '',
     date: new Date().toISOString().split('T')[0],
-    serviceAdvisor: '',
-    chassisNumber: '',
-    customerName: '',
-    customerNumber: '',
-    customerEmail: '',
-    carMake: '',
-    carModel: '',
-    carYear: '',
-    insuranceName: '',
-    jobDescription: '',
-    promisedDate: ''
+    chassis_number: '',
+    customer_name: '',
+    customer_number: '',
+    customer_email: '',
+    car_make: '',
+    car_model: '',
+    car_year: '',
+    insurance_name: '',
+    job_description: '',
+    promised_delivery_date: '',
+    number_plate_id: '',
+    status: 'active'
   });
 
-  // Load job card data if editing
+  const [availableNumberPlates, setAvailableNumberPlates] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingPlates, setLoadingPlates] = useState(false);
+  const [fetchError, setFetchError] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  // Load job card data if editing and fetch available number plates
   useEffect(() => {
-    if (isEditing) {
-      const jobCard = sampleJobCards.find(card => card.id === parseInt(id));
-      if (jobCard) {
-        setFormData(jobCard);
+    const initializeData = async () => {
+      setLoadingPlates(true);
+      setFetchError('');
+      
+      try {
+        // Always fetch available number plates
+        await fetchAvailableNumberPlates();
+        
+        if (isEditing) {
+          await fetchJobCard();
+        } else if (plateData) {
+          // Pre-fill form if coming from number plate view
+          setFormData(prev => ({
+            ...prev,
+            vehicle_number: plateData.plateNumber || '',
+            car_make: plateData.vehicleDetails?.brand || '',
+            car_model: plateData.vehicleDetails?.type || '',
+          }));
+          setDataLoaded(true);
+        } else {
+          // For new job cards, mark as loaded immediately
+          setDataLoaded(true);
+        }
+      } catch (error) {
+        console.error('Error initializing data:', error);
+        setFetchError(error.message || 'Failed to initialize form data');
+      } finally {
+        setLoadingPlates(false);
       }
+    };
+
+    initializeData();
+  }, [id, isEditing, token, plateData]);
+
+  // Fetch available number plates from API
+  const fetchAvailableNumberPlates = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/api/number-plates`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Number plates fetched:', result);
+        
+        // Handle different response structures
+        let plates = [];
+        if (Array.isArray(result)) {
+          plates = result;
+        } else if (Array.isArray(result.data)) {
+          plates = result.data;
+        } else if (result.data && typeof result.data === 'object') {
+          plates = Object.values(result.data);
+        } else {
+          plates = [];
+        }
+        
+        setAvailableNumberPlates(plates);
+      } else {
+        console.log('⚠️ No number plates endpoint or no plates available');
+        setAvailableNumberPlates([]);
+      }
+    } catch (error) {
+      console.log('⚠️ Error fetching number plates:', error);
+      setAvailableNumberPlates([]);
     }
-  }, [id, isEditing]);
+  };
+
+  const fetchJobCard = async () => {
+    try {
+      setLoading(true);
+      setFetchError('');
+
+      console.log(`🔍 Fetching job card with ID: ${id}`);
+      
+      const response = await fetch(`${BASE_URL}/api/job-cards/${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch job card: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Job card fetched:', result);
+      
+      if (result.status && result.data) {
+        const jobCard = result.data;
+        console.log('📝 Setting form data with:', jobCard);
+        
+        setFormData({
+          vehicle_number: jobCard.vehicle_number || '',
+          date: jobCard.date || new Date().toISOString().split('T')[0],
+          chassis_number: jobCard.chassis_number || '',
+          customer_name: jobCard.customer_name || '',
+          customer_number: jobCard.customer_number || '',
+          customer_email: jobCard.customer_email || '',
+          car_make: jobCard.car_make || '',
+          car_model: jobCard.car_model || '',
+          car_year: jobCard.car_year || '',
+          insurance_name: jobCard.insurance_name || '',
+          job_description: jobCard.job_description || '',
+          promised_delivery_date: jobCard.promised_delivery_date || '',
+          number_plate_id: jobCard.number_plate_id || '',
+          status: jobCard.status || 'active'
+        });
+        
+        setDataLoaded(true);
+        console.log('✅ Form data loaded successfully');
+      } else {
+        throw new Error('Job card not found in response');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error fetching job card:', error);
+      setFetchError(error.message || 'Failed to fetch job card details');
+      setDataLoaded(true); // Still mark as loaded to show error
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -93,19 +560,157 @@ function JobCardForm() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically save to API
-    console.log('Form submitted:', formData);
     
-    // Show success message and navigate back
-    alert(isEditing ? 'Job card updated successfully!' : 'Job card created successfully!');
-    navigate('/job-cards');
+    // Check if user is service advisor
+    if (!isServiceAdvisor) {
+      setSubmitError('Only service advisors can create job cards. Please contact a service advisor or login with appropriate permissions.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setSubmitError('');
+      setSuccess('');
+
+      // Validate required fields
+      const requiredFields = {
+        vehicle_number: 'Vehicle Number',
+        customer_name: 'Customer Name',
+        customer_number: 'Customer Number',
+        job_description: 'Job Description'
+      };
+
+      const missingFields = Object.entries(requiredFields)
+        .filter(([field]) => !formData[field]?.toString().trim())
+        .map(([_, name]) => name);
+
+      if (missingFields.length > 0) {
+        throw new Error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      }
+
+      console.log('📤 Submitting form data as service advisor:', formData);
+
+      const url = isEditing ? `${BASE_URL}/api/job-cards/${id}` : `${BASE_URL}/api/job-cards`;
+      const method = isEditing ? 'PUT' : 'POST';
+
+      // Prepare request body based on whether we're creating or updating
+      let requestBody;
+
+      if (isEditing) {
+        // For UPDATE - only send fields allowed by PUT API
+        requestBody = {
+          chassis_number: formData.chassis_number?.trim() || '',
+          customer_name: formData.customer_name.trim(),
+          status: formData.status || 'active'
+        };
+        console.log('🔄 UPDATE mode - limited fields:', requestBody);
+      } else {
+        // For CREATE - send all fields
+        requestBody = {
+          vehicle_number: formData.vehicle_number.trim(),
+          date: formData.date,
+          chassis_number: formData.chassis_number?.trim() || '',
+          customer_name: formData.customer_name.trim(),
+          customer_number: formData.customer_number.trim(),
+          customer_email: formData.customer_email?.trim() || '',
+          car_make: formData.car_make?.trim() || '',
+          car_model: formData.car_model?.trim() || '',
+          car_year: formData.car_year ? parseInt(formData.car_year) : 0,
+          insurance_name: formData.insurance_name?.trim() || '',
+          job_description: formData.job_description.trim(),
+          promised_delivery_date: formData.promised_delivery_date || formData.date,
+          status: formData.status || 'active'
+        };
+
+        // Only include number_plate_id if it's a valid number and exists
+        if (formData.number_plate_id && !isNaN(formData.number_plate_id) && formData.number_plate_id !== '') {
+          const plateId = parseInt(formData.number_plate_id);
+          const plateExists = availableNumberPlates.some(plate => plate.id === plateId);
+          if (plateExists) {
+            requestBody.number_plate_id = plateId;
+          } else {
+            console.warn('⚠️ Provided number plate ID does not exist, skipping...');
+          }
+        }
+      }
+
+      console.log('📦 Request body:', requestBody);
+
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const responseData = await response.json();
+      console.log('📥 API Response:', responseData);
+
+      if (!response.ok) {
+        // Handle foreign key constraint error specifically
+        if (responseData.message?.includes('foreign key constraint') || responseData.message?.includes('number_plates')) {
+          throw new Error('Invalid number plate ID. Please select a valid number plate or leave it empty.');
+        }
+        throw new Error(responseData.message || `Failed to ${isEditing ? 'update' : 'create'} job card: ${response.status}`);
+      }
+
+      console.log('✅ Job card saved successfully:', responseData);
+      
+      setSuccess(isEditing ? 'Job card updated successfully!' : 'Job card created successfully!');
+      
+      // Navigate back after a short delay
+      setTimeout(() => {
+        navigate('/job-cards');
+      }, 1500);
+      
+    } catch (error) {
+      console.error('❌ Error saving job card:', error);
+      setSubmitError(error.message || `Failed to ${isEditing ? 'update' : 'create'} job card`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
     navigate('/job-cards');
   };
+
+  // Show loading state while fetching data
+  if ((loading && isEditing) || loadingPlates) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <CircularProgress size={60} />
+        <Typography variant="h6" sx={{ ml: 2 }}>
+          {isEditing ? 'Loading job card...' : 'Loading form...'}
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Show error if data loading failed
+  if (fetchError && isEditing) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Button startIcon={<ArrowBackIcon />} onClick={handleCancel}>
+          Back to Job Cards
+        </Button>
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {fetchError}
+        </Alert>
+        <Button 
+          variant="contained" 
+          onClick={fetchJobCard}
+          sx={{ mt: 2 }}
+        >
+          Retry Loading
+        </Button>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5', py: 3 }}>
@@ -117,6 +722,7 @@ function JobCardForm() {
             onClick={handleCancel}
             variant="outlined"
             sx={{ mr: 2 }}
+            disabled={loading}
           >
             Back
           </Button>
@@ -125,10 +731,78 @@ function JobCardForm() {
           </Typography>
         </Box>
 
-        <Card sx={{ boxShadow: 3 }}>
+        {/* Permission Warning */}
+        {!isServiceAdvisor && (
+          <Alert 
+            severity="warning" 
+            sx={{ mb: 2 }}
+            icon={<WarningIcon />}
+          >
+            <Typography variant="h6" gutterBottom>
+              Permission Required
+            </Typography>
+            <Typography>
+              Only service advisors can create job cards. 
+              {user ? (
+                <> Your current role ({user.role || 'user'}) does not have permission to create job cards.</>
+              ) : (
+                ' Please login as a service advisor.'
+              )}
+            </Typography>
+            <Box sx={{ mt: 1 }}>
+              <Button 
+                variant="outlined" 
+                color="warning"
+                onClick={() => navigate('/job-cards')}
+                size="small"
+              >
+                View Existing Job Cards
+              </Button>
+            </Box>
+          </Alert>
+        )}
+
+        {submitError && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setSubmitError('')}>
+            {submitError}
+          </Alert>
+        )}
+
+        {success && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {success}
+          </Alert>
+        )}
+
+        {/* Edit Mode Warning */}
+        {isEditing && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              <strong>Note:</strong> In edit mode, only chassis number, customer name, and status can be updated. 
+              Other fields are displayed for reference but cannot be modified.
+            </Typography>
+          </Alert>
+        )}
+
+        <Card sx={{ boxShadow: 3, opacity: isServiceAdvisor ? 1 : 0.6 }}>
           <CardContent sx={{ p: 4 }}>
             <form onSubmit={handleSubmit}>
               <Grid container spacing={3}>
+                {/* Current User Info */}
+                {isServiceAdvisor && user && (
+                  <Grid item xs={12}>
+                    <Alert severity="info">
+                      <Typography variant="body2">
+                        <strong>Service Advisor:</strong> {user.name || user.email} 
+                        {user.role && ` (${user.role})`}
+                      </Typography>
+                      <Typography variant="body2" sx={{ mt: 0.5 }}>
+                        You are authorized to {isEditing ? 'update' : 'create'} job cards.
+                      </Typography>
+                    </Alert>
+                  </Grid>
+                )}
+
                 {/* Vehicle Information */}
                 <Grid item xs={12}>
                   <Paper sx={{ p: 3, backgroundColor: '#49a3f1', color: 'white' }}>
@@ -140,13 +814,15 @@ function JobCardForm() {
 
                 <Grid item xs={12} md={6}>
                   <TextField
-                    label="Vehicle Number"
-                    name="vehicleNumber"
-                    value={formData.vehicleNumber}
+                    label="Vehicle Number *"
+                    name="vehicle_number"
+                    value={formData.vehicle_number}
                     onChange={handleInputChange}
                     fullWidth
                     required
                     variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
                   />
                 </Grid>
 
@@ -160,32 +836,36 @@ function JobCardForm() {
                     fullWidth
                     InputLabelProps={{ shrink: true }}
                     variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     label="Chassis Number"
-                    name="chassisNumber"
-                    value={formData.chassisNumber}
+                    name="chassis_number"
+                    value={formData.chassis_number}
                     onChange={handleInputChange}
                     fullWidth
-                    required
                     variant="outlined"
+                    disabled={loading || !isServiceAdvisor}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     label="Car Make"
-                    name="carMake"
-                    value={formData.carMake}
+                    name="car_make"
+                    value={formData.car_make}
                     onChange={handleInputChange}
                     select
                     fullWidth
-                    required
                     variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
                   >
+                    <MenuItem value="">Select Car Make</MenuItem>
                     {carMakes.map(make => (
                       <MenuItem key={make} value={make}>{make}</MenuItem>
                     ))}
@@ -195,24 +875,28 @@ function JobCardForm() {
                 <Grid item xs={12} md={6}>
                   <TextField
                     label="Car Model"
-                    name="carModel"
-                    value={formData.carModel}
+                    name="car_model"
+                    value={formData.car_model}
                     onChange={handleInputChange}
                     fullWidth
-                    required
                     variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     label="Car Year"
-                    name="carYear"
-                    value={formData.carYear}
+                    name="car_year"
+                    type="number"
+                    value={formData.car_year}
                     onChange={handleInputChange}
                     fullWidth
-                    required
                     variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    inputProps={{ min: 1900, max: new Date().getFullYear() + 1 }}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
                   />
                 </Grid>
 
@@ -227,50 +911,58 @@ function JobCardForm() {
 
                 <Grid item xs={12} md={6}>
                   <TextField
-                    label="Customer Name"
-                    name="customerName"
-                    value={formData.customerName}
+                    label="Customer Name *"
+                    name="customer_name"
+                    value={formData.customer_name}
                     onChange={handleInputChange}
                     fullWidth
                     required
                     variant="outlined"
+                    disabled={loading || !isServiceAdvisor}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
-                    label="Customer Number"
-                    name="customerNumber"
-                    value={formData.customerNumber}
+                    label="Customer Number *"
+                    name="customer_number"
+                    value={formData.customer_number}
                     onChange={handleInputChange}
                     fullWidth
                     required
                     variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     label="Customer Email"
-                    name="customerEmail"
+                    name="customer_email"
                     type="email"
-                    value={formData.customerEmail}
+                    value={formData.customer_email}
                     onChange={handleInputChange}
                     fullWidth
                     variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     label="Insurance Name"
-                    name="insuranceName"
-                    value={formData.insuranceName}
+                    name="insurance_name"
+                    value={formData.insurance_name}
                     onChange={handleInputChange}
                     select
                     fullWidth
                     variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
                   >
+                    <MenuItem value="">Select Insurance</MenuItem>
                     {insuranceCompanies.map(company => (
                       <MenuItem key={company} value={company}>{company}</MenuItem>
                     ))}
@@ -288,41 +980,79 @@ function JobCardForm() {
 
                 <Grid item xs={12} md={6}>
                   <TextField
-                    label="Service Advisor Name"
-                    name="serviceAdvisor"
-                    value={formData.serviceAdvisor}
+                    label="Promised Delivery Date"
+                    name="promised_delivery_date"
+                    type="date"
+                    value={formData.promised_delivery_date}
                     onChange={handleInputChange}
                     fullWidth
-                    required
+                    InputLabelProps={{ shrink: true }}
                     variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
-                    label="Promised Delivery Date"
-                    name="promisedDate"
-                    type="date"
-                    value={formData.promisedDate}
+                    label="Status"
+                    name="status"
+                    value={formData.status}
                     onChange={handleInputChange}
+                    select
                     fullWidth
-                    InputLabelProps={{ shrink: true }}
-                    required
                     variant="outlined"
-                  />
+                    disabled={loading || !isServiceAdvisor}
+                  >
+                    {statusOptions.map(status => (
+                      <MenuItem key={status} value={status}>
+                        {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 </Grid>
+
+                {!isEditing && (
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Number Plate"
+                      name="number_plate_id"
+                      value={formData.number_plate_id}
+                      onChange={handleInputChange}
+                      select
+                      fullWidth
+                      variant="outlined"
+                      disabled={loading || !isServiceAdvisor || availableNumberPlates.length === 0}
+                      helperText={
+                        availableNumberPlates.length === 0 
+                          ? "No number plates available" 
+                          : "Optional: Link to existing number plate"
+                      }
+                    >
+                      <MenuItem value="">No Number Plate</MenuItem>
+                      {Array.isArray(availableNumberPlates) && availableNumberPlates.map(plate => (
+                        <MenuItem key={plate.id} value={plate.id}>
+                          {plate.plate_number} {plate.vehicle_details ? `- ${plate.vehicle_details.brand} ${plate.vehicle_details.type}` : ''}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                )}
 
                 <Grid item xs={12}>
                   <TextField
-                    label="Job Description"
-                    name="jobDescription"
-                    value={formData.jobDescription}
+                    label="Job Description *"
+                    name="job_description"
+                    value={formData.job_description}
                     onChange={handleInputChange}
                     multiline
                     rows={4}
                     fullWidth
                     required
                     variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    placeholder="Describe the work to be done..."
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
                   />
                 </Grid>
 
@@ -333,6 +1063,7 @@ function JobCardForm() {
                       onClick={handleCancel}
                       variant="outlined"
                       size="large"
+                      disabled={loading}
                     >
                       Cancel
                     </Button>
@@ -340,9 +1071,10 @@ function JobCardForm() {
                       type="submit"
                       variant="contained"
                       size="large"
-                      startIcon={<SaveIcon />}
+                      startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
+                      disabled={loading || !isServiceAdvisor}
                     >
-                      {isEditing ? 'Update Job Card' : 'Create Job Card'}
+                      {loading ? 'Saving...' : (isEditing ? 'Update Job Card' : 'Create Job Card')}
                     </Button>
                   </Box>
                 </Grid>

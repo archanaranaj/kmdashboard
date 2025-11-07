@@ -42,7 +42,7 @@ function NumberPlateView() {
   const [rejectReason, setRejectReason] = useState('');
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
-const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
 
   // Fetch number plate details by ID
   useEffect(() => {
@@ -184,12 +184,15 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
       vehicleBrand = plateDetails.vehicle_brand || 'Unknown';
     }
 
+    // Generate image URL using the new endpoint
+    const imageUrl = `${BASE_URL}/api/number-plates/integration/read-image-from-nvr/${plateDetails.id}`;
+
     // Transform API response to match our app structure
     const transformedData = {
       id: plateDetails.id,
       plateNumber: plateNumber,
       timestamp: plateDetails.date_detected,
-      imageUrl: plateDetails.image_url,
+      imageUrl: imageUrl, // Using the new image URL endpoint
       status: plateDetails.status || 'pending',
       
       // Vehicle details from API response
@@ -231,6 +234,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
     };
 
     console.log('🔄 Final transformed plate data:', transformedData);
+    console.log('🖼️ Image URL:', transformedData.imageUrl);
     setPlateData(transformedData);
     setLoading(false);
   };
@@ -254,7 +258,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
   };
 
   const handleImageError = () => {
-    console.error('❌ Image failed to load - Authentication required');
+    console.error('❌ Image failed to load');
     setImageLoading(false);
     setImageError(true);
   };
@@ -265,30 +269,41 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
     try {
       setImageLoading(true);
       
-      // Create a hidden iframe to handle the download
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = plateData.imageUrl;
-      document.body.appendChild(iframe);
+      // Create a temporary anchor element for download
+      const response = await fetch(plateData.imageUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       
-      // Remove the iframe after a delay
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-        setImageLoading(false);
-      }, 3000);
+      if (!response.ok) {
+        throw new Error('Failed to download image');
+      }
       
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `plate-${plateData.plateNumber}-${plateData.id}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      setImageLoading(false);
     } catch (error) {
       console.error('Error downloading image:', error);
-      // Fallback: open in new tab
-      window.open(plateData.imageUrl, '_blank');
+      setError('Failed to download image. Please try viewing the full image instead.');
       setImageLoading(false);
     }
   };
 
   const handleViewFullImage = () => {
     if (plateData?.imageUrl) {
-      // Open in new tab - might prompt for authentication
-      window.open(plateData.imageUrl, '_blank', 'noopener,noreferrer');
+      // Open in new tab with authentication
+      const imageWithAuth = `${plateData.imageUrl}?token=${token}`;
+      window.open(imageWithAuth, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -575,13 +590,10 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
                       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px' }}>
                         <BrokenImageIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
                         <Typography color="textSecondary" align="center" gutterBottom>
-                          Image requires authentication
+                          Failed to load image
                         </Typography>
                         <Typography variant="body2" color="textSecondary" align="center">
-                          Click "View Full" to open in new window
-                        </Typography>
-                        <Typography variant="caption" color="textSecondary" align="center" sx={{ mt: 1 }}>
-                          You may need to login to the camera system
+                          The image may not be available or requires authentication
                         </Typography>
                       </Box>
                     )}
