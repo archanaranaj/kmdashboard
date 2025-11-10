@@ -336,39 +336,73 @@ function NumberPlateView() {
     }
   };
 
-  const handleReject = async () => {
-    try {
-      setActionLoading(true);
+  // const handleReject = async () => {
+  //   try {
+  //     setActionLoading(true);
       
-      const response = await fetch(`${BASE_URL}/api/number-plates/${id}/reject`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          reason: rejectReason
-        }),
-      });
+  //     const response = await fetch(`${BASE_URL}/api/number-plates/${id}/reject`, {
+  //       method: 'PUT',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': `Bearer ${token}`,
+  //       },
+  //       body: JSON.stringify({
+  //         reason: rejectReason
+  //       }),
+  //     });
 
-      if (response.ok) {
-        console.log('✅ Number plate rejected successfully');
-        setRejectDialogOpen(false);
-        setRejectReason('');
-        setError('');
-        // Refresh the data
-        fetchNumberPlateDetails();
-      } else {
-        throw new Error('Failed to reject number plate');
-      }
-    } catch (error) {
-      console.error('Error rejecting number plate:', error);
-      setError(error.message);
-    } finally {
-      setActionLoading(false);
+  //     if (response.ok) {
+  //       console.log('✅ Number plate rejected successfully');
+  //       setRejectDialogOpen(false);
+  //       setRejectReason('');
+  //       setError('');
+  //       // Refresh the data
+  //       fetchNumberPlateDetails();
+  //     } else {
+  //       throw new Error('Failed to reject number plate');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error rejecting number plate:', error);
+  //     setError(error.message);
+  //   } finally {
+  //     setActionLoading(false);
+  //   }
+  // };
+
+  const handleReject = async () => {
+  try {
+    setActionLoading(true);
+    
+    // Use POST method and correct endpoint format
+    const response = await fetch(`${BASE_URL}/api/number-plates/reject/${id}`, {
+      method: 'POST', // Changed from PUT to POST
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        reason: rejectReason
+      }),
+    });
+
+    if (response.ok) {
+      console.log('✅ Number plate rejected successfully');
+      setRejectDialogOpen(false);
+      setRejectReason('');
+      setError('');
+      // Refresh the data to show updated status
+      fetchNumberPlateDetails();
+    } else {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to reject number plate');
     }
-  };
-
+  } catch (error) {
+    console.error('Error rejecting number plate:', error);
+    setError(error.message);
+  } finally {
+    setActionLoading(false);
+  }
+};
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'approved': return 'success';
@@ -385,7 +419,7 @@ function NumberPlateView() {
 
   const handleCreateJobCard = () => {
     if (plateData) {
-      navigate('/job-cards/create', { 
+      navigate('/job-cards/add', { 
         state: { 
           plateData: {
             plateNumber: plateData.plateNumber,
@@ -742,7 +776,7 @@ function NumberPlateView() {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {plateData.status === 'pending' && (
                   <>
-                    <Button 
+                    {/* <Button 
                       variant="contained" 
                       startIcon={<CheckIcon />}
                       onClick={() => setApproveDialogOpen(true)}
@@ -750,7 +784,7 @@ function NumberPlateView() {
                       sx={{ bgcolor: 'success.main' }}
                     >
                       Approve Plate
-                    </Button>
+                    </Button> */}
                     <Button 
                       variant="outlined" 
                       startIcon={<CloseIcon />}
