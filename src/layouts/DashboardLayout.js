@@ -1,128 +1,3 @@
-// import React from 'react';
-// import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-// import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Toolbar } from '@mui/material';
-// import {
-//   Dashboard as DashboardIcon,
-//   Assignment as JobCardsIcon,
-//   Payment as CashIcon,
-//   ExitToApp as GatePassIcon,
-//   ShoppingCart as PurchaseIcon,
-// } from '@mui/icons-material';
-// import { useAuth } from '../contexts/AuthContext';
-// import DashboardNavbar from '../components/DashboardNavbar';
-
-// // Import pages
-// import Dashboard from '../pages/Dashboard';
-// import JobCards from '../pages/JobCards';
-// import JobCardView from '../pages/JobCardView';
-// import JobCardForm from '../pages/JobCardForm';
-// import CashManagement from '../pages/CashManagement';
-// import GatePass from '../pages/GatePass';
-// import GatePassView from '../pages/GatePassView';
-// import PurchaseRequisition from '../pages/PurchaseRequisition';
-// import PurchaseRequisitionView from '../pages/PurchaseRequisitionView';
-// import PurchaseRequisitionForm from '../pages/PurchaseRequisitionForm';
-
-
-// const drawerWidth = 240;
-
-// const menuItems = [
-//   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', roles: ['service_advisor', 'accounts'] },
-//   { text: 'Job Cards', icon: <JobCardsIcon />, path: '/job-cards', roles: ['service_advisor', 'accounts'] },
-//   { text: 'Cash Management', icon: <CashIcon />, path: '/cash-management', roles: ['accounts'] },
-//   { text: 'Gate Pass', icon: <GatePassIcon />, path: '/gate-pass', roles: ['service_advisor'] },
-//   { text: 'Purchase Requisition', icon: <PurchaseIcon />, path: '/purchase-requisition', roles: ['service_advisor'] },
-// ];
-
-// function DashboardLayout() {
-//   const navigate = useNavigate();
-//   const location = useLocation();
-//   const { user } = useAuth();
-
-//   const filteredMenuItems = menuItems.filter(item => 
-//     item.roles.includes(user?.role)
-//   );
-
-//   return (
-//     <Box sx={{ display: 'flex' }}>
-//       <Drawer
-//         variant="permanent"
-//         sx={{
-//           width: drawerWidth,
-//           flexShrink: 0,
-//           '& .MuiDrawer-paper': {
-//             width: drawerWidth,
-//             boxSizing: 'border-box',
-//             backgroundColor: '#000000de',
-//             color: 'white',
-//           },
-//         }}
-//       >
-//         <Toolbar>
-//           <Box sx={{ padding: 2 }}>
-//             <div style={{ color: 'white', fontWeight: 'bold', fontSize: '18px' }}>
-//               KM Group
-//             </div>
-//           </Box>
-//         </Toolbar>
-//         <List>
-//           {filteredMenuItems.map((item) => (
-//             <ListItem
-//               button
-//               key={item.text}
-//               selected={location.pathname === item.path}
-//               onClick={() => navigate(item.path)}
-//               sx={{
-//                 '&.Mui-selected': {
-//                   backgroundColor: '#49a3f1',
-//                   color: 'white',
-//                   '& .MuiListItemIcon-root': {
-//                     color: 'white',
-//                   },
-//                 },
-//                 '&:hover': {
-//                   backgroundColor: '#99b9d5ff',
-//                 },
-//                 borderRadius: 1,
-//                 margin: '4px 8px',
-//                 color: 'white',
-//               }}
-//             >
-//               <ListItemIcon sx={{ color: 'white' }}>{item.icon}</ListItemIcon>
-//               <ListItemText primary={item.text} />
-//             </ListItem>
-//           ))}
-//         </List>
-//       </Drawer>
-      
-//       <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-//         <DashboardNavbar />
-//         <Box sx={{ flexGrow: 1, p: 3 }}>
-//           <Routes>
-//             <Route index element={<Navigate to="/dashboard" />} />
-//             <Route path="dashboard" element={<Dashboard />} />
-//             <Route path="job-cards" element={<JobCards />} />
-//             <Route path="/job-cards/view/:id" element={<JobCardView />} />
-//               <Route path="/job-cards/add" element={<JobCardForm />} />
-//         <Route path="/job-cards/edit/:id" element={<JobCardForm />} />
-//             <Route path="cash-management" element={<CashManagement />} />
-//             <Route path="gate-pass" element={<GatePass />} />
-//             <Route path="/gate-pass/view/:id" element={<GatePassView />} />
-//             <Route path="purchase-requisition" element={<PurchaseRequisition />} />
-//                     <Route path="/purchase-requisition/view/:id" element={<PurchaseRequisitionView />} />
-//         <Route path="/purchase-requisition/add" element={<PurchaseRequisitionForm />} />
-//         <Route path="/purchase-requisition/edit/:id" element={<PurchaseRequisitionForm />} />
-
-//             <Route path="*" element={<Navigate to="/dashboard" />} />
-//           </Routes>
-//         </Box>
-//       </Box>
-//     </Box>
-//   );
-// }
-
-// export default DashboardLayout;
-
 import React, { useState } from 'react';
 import { 
   Routes, 
@@ -153,7 +28,8 @@ import {
   ShoppingCart as PurchaseIcon,
   Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
- QrCode as NumberPlateIcon
+ QrCode as NumberPlateIcon,
+  People as UsersIcon 
 } from '@mui/icons-material';
 
 import { useAuth } from '../contexts/AuthContext';
@@ -172,6 +48,9 @@ import PurchaseRequisitionView from '../pages/PurchaseRequisitionView';
 import PurchaseRequisitionForm from '../pages/PurchaseRequisitionForm';
 import NumberPlates from '../pages/NumberPlates';
 import NumberPlateView from '../pages/NumberPlateView';
+import Users from '../pages/Users';
+import UserView from '../pages/UserView';
+import UserForm from '../pages/UserForm';
 const drawerWidth = 240;
 
 const menuItems = [
@@ -180,7 +59,10 @@ const menuItems = [
   { text: 'Cash Management', icon: <CashIcon />, path: '/cash-management', roles: ['admin','accounts'] },
   { text: 'Gate Pass', icon: <GatePassIcon />, path: '/gate-pass', roles: ['admin','service_advisor'] },
   { text: 'Purchase Requisition', icon: <PurchaseIcon />, path: '/purchase-requisition', roles: ['admin','service_advisor'] },
- { text: 'Number Plates', icon: <NumberPlateIcon />, path: '/number-plates', roles: ['admin','service_advisor', 'accounts'] }
+  { text: 'Number Plates', icon: <NumberPlateIcon />, path: '/number-plates', roles: ['admin','service_advisor', 'accounts'] },
+   { text: 'Users', icon: <UsersIcon />, path: '/users', roles: ['admin', 'service_advisor', 'accounts'] }, 
+
+ 
 ];
 
 function DashboardLayout() {
@@ -405,6 +287,11 @@ function DashboardLayout() {
             <Route path="/purchase-requisition/edit/:id" element={<PurchaseRequisitionForm />} />
             <Route path="/number-plates" element={<NumberPlates />} />
 <Route path="/number-plates/view/:id" element={<NumberPlateView />} />
+  <Route path="users" element={<Users />} />
+    <Route path="/users/view/:id" element={<UserView />} />
+  <Route path="/users/add" element={<UserForm />} />
+  <Route path="/users/edit/:id" element={<UserForm />} />
+  
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
         </Box>
