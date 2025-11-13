@@ -345,7 +345,7 @@ function UserForm() {
                                 </>
                               )
                             }}
-                            helperText="Optional - assign user to a specific branch"
+                            // helperText="Optional - assign user to a specific branch"
                           />
                         )}
                         isOptionEqualToValue={(option, value) => option.id === value.id}
@@ -366,7 +366,7 @@ function UserForm() {
                   </Grid>
 
                   {/* Alternative: Simple Select dropdown for branches */}
-                  <Grid item xs={12}>
+                  {/* <Grid item xs={12}>
                     <FormControl fullWidth>
                       <InputLabel>Branch (Optional)</InputLabel>
                       <Select
@@ -385,7 +385,7 @@ function UserForm() {
                         ))}
                       </Select>
                     </FormControl>
-                  </Grid>
+                  </Grid> */}
 
                   <Grid item xs={12}>
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
