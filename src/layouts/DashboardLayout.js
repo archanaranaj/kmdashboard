@@ -52,6 +52,7 @@ import Users from '../pages/Users';
 import UserView from '../pages/UserView';
 import UserForm from '../pages/UserForm';
 import PettyCashDetails from '../pages/PettyCashDetails';
+import PettySalesDetails from 'pages/PettySalesDetails';
 const drawerWidth = 240;
 
 const menuItems = [
@@ -293,6 +294,7 @@ function DashboardLayout() {
   <Route path="/users/add" element={<UserForm />} />
   <Route path="/users/edit/:id" element={<UserForm />} />
   <Route path="/petty-cash/:id" element={<PettyCashDetails />} />
+  <Route path="/petty-sales/:id" element={<PettySalesDetails />} />
   
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
