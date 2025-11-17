@@ -21,76 +21,29 @@ import {
   MenuItem,
   Grid,
   Chip,
-  Alert
+  Alert,
+  CircularProgress,
+  Snackbar
 } from '@mui/material';
 import {
   Add as AddIcon,
   Print as PrintIcon,
   Visibility as ViewIcon,
-  QrCode as QrCodeIcon
+  QrCode as QrCodeIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 function GatePass() {
   const navigate = useNavigate();
+  const { token, user } = useAuth();
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
   
-  // Sample data - in real app, this would come from API
-  const [vehicles, setVehicles] = useState([
-    {
-      id: 1,
-      vehicleNumber: 'ABC-123',
-      customerName: 'Alice Johnson',
-      carMake: 'Toyota',
-      carModel: 'Camry',
-      carYear: '2022',
-      chassisNumber: 'CHS123456789',
-      jobCardId: 1,
-      jobCompleted: true,
-      gatePassCreated: false
-    },
-    {
-      id: 2,
-      vehicleNumber: 'XYZ-789',
-      customerName: 'Bob Brown',
-      carMake: 'Honda',
-      carModel: 'Civic',
-      carYear: '2021',
-      chassisNumber: 'CHS987654321',
-      jobCardId: 2,
-      jobCompleted: true,
-      gatePassCreated: true
-    },
-    {
-      id: 3,
-      vehicleNumber: 'DEF-456',
-      customerName: 'Carol Davis',
-      carMake: 'Ford',
-      carModel: 'Focus',
-      carYear: '2020',
-      chassisNumber: 'CHS456789123',
-      jobCardId: 3,
-      jobCompleted: false,
-      gatePassCreated: false
-    }
-  ]);
-
-  const [gatePasses, setGatePasses] = useState([
-    {
-      id: 1,
-      gatePassNumber: 'GP-001',
-      vehicleNumber: 'XYZ-789',
-      customerName: 'Bob Brown',
-      carDetails: 'Honda Civic (2021)',
-      issueDate: '2024-01-19',
-      issueTime: '14:30',
-      issuedBy: 'John Doe',
-      status: 'Active',
-      jobCardId: 2,
-      chassisNumber: 'CHS987654321',
-      additionalNotes: ''
-    }
-  ]);
-
+  const [gatePasses, setGatePasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [formData, setFormData] = useState({
@@ -98,24 +51,124 @@ function GatePass() {
     issuedBy: '',
     additionalNotes: ''
   });
+  const [submitting, setSubmitting] = useState(false);
+
+  // Fetch all gate passes from API
+  const fetchGatePasses = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      console.log('🔍 Fetching gate passes...');
+      
+      const response = await fetch(`${BASE_URL}/api/gate-passes`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch gate passes: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Gate passes fetched:', result);
+      
+      if (result.status && Array.isArray(result.data)) {
+        setGatePasses(result.data);
+      } else {
+        throw new Error('Invalid response format from gate passes API');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error fetching gate passes:', error);
+      setError(error.message || 'Failed to fetch gate passes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGatePasses();
+  }, []);
 
   // Filter vehicles that are eligible for gate pass (job completed and no existing gate pass)
-  const eligibleVehicles = vehicles.filter(vehicle => 
-    vehicle.jobCompleted && !vehicle.gatePassCreated
-  );
+  // This would need to be fetched from your job cards API
+  const [eligibleVehicles, setEligibleVehicles] = useState([]);
+  const [vehiclesLoading, setVehiclesLoading] = useState(false);
+
+  // Fetch eligible vehicles (job cards that are completed and don't have gate passes)
+  const fetchEligibleVehicles = async () => {
+    try {
+      setVehiclesLoading(true);
+      
+      // First, fetch job cards that are completed
+      const jobCardsResponse = await fetch(`${BASE_URL}/api/job-cards?status=completed`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (jobCardsResponse.ok) {
+        const jobCardsResult = await jobCardsResponse.json();
+        
+        if (jobCardsResult.status && Array.isArray(jobCardsResult.data)) {
+          // Filter job cards that don't have gate passes
+          const jobCardsWithoutGatePass = jobCardsResult.data.filter(jobCard => {
+            // Check if this job card already has a gate pass
+            return !gatePasses.some(gatePass => gatePass.job_card_id === jobCard.id);
+          });
+
+          // Transform job cards to vehicle format
+          const vehiclesData = jobCardsWithoutGatePass.map(jobCard => ({
+            id: jobCard.id,
+            vehicleNumber: jobCard.vehicle_number,
+            customerName: jobCard.customer_name,
+            carMake: jobCard.car_make,
+            carModel: jobCard.car_model,
+            carYear: jobCard.car_year,
+            chassisNumber: jobCard.chassis_number,
+            jobCardId: jobCard.id,
+            jobCompleted: true,
+            gatePassCreated: false
+          }));
+
+          setEligibleVehicles(vehiclesData);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error fetching eligible vehicles:', error);
+      // If API fails, use empty array
+      setEligibleVehicles([]);
+    } finally {
+      setVehiclesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (gatePasses.length > 0) {
+      fetchEligibleVehicles();
+    }
+  }, [gatePasses]);
 
   const handleOpenCreate = (vehicle = null) => {
     if (vehicle) {
       setSelectedVehicle(vehicle);
       setFormData({
         vehicleNumber: vehicle.vehicleNumber,
-        issuedBy: 'Service Advisor', // In real app, this would be current user
+        issuedBy: user?.username || 'Service Advisor',
         additionalNotes: ''
       });
     } else {
       setFormData({
         vehicleNumber: '',
-        issuedBy: 'Service Advisor',
+        issuedBy: user?.username || 'Service Advisor',
         additionalNotes: ''
       });
     }
@@ -125,10 +178,14 @@ function GatePass() {
   const handleCloseCreateDialog = () => {
     setOpenCreateDialog(false);
     setSelectedVehicle(null);
+    setFormData({
+      vehicleNumber: '',
+      issuedBy: user?.username || 'Service Advisor',
+      additionalNotes: ''
+    });
   };
 
   const handleOpenView = (gatePass) => {
-    // Navigate to gate pass view page
     navigate(`/gate-pass/view/${gatePass.id}`);
   };
 
@@ -140,43 +197,62 @@ function GatePass() {
     }));
   };
 
-  const handleCreateGatePass = () => {
-    const vehicle = vehicles.find(v => v.vehicleNumber === formData.vehicleNumber);
-    if (!vehicle) return;
+  const handleCreateGatePass = async () => {
+    try {
+      setSubmitting(true);
+      
+      const vehicle = eligibleVehicles.find(v => v.vehicleNumber === formData.vehicleNumber);
+      if (!vehicle) {
+        throw new Error('Selected vehicle not found');
+      }
 
-    const newGatePass = {
-      id: gatePasses.length + 1,
-      gatePassNumber: `GP-${String(gatePasses.length + 1).padStart(3, '0')}`,
-      vehicleNumber: formData.vehicleNumber,
-      customerName: vehicle.customerName,
-      carDetails: `${vehicle.carMake} ${vehicle.carModel} (${vehicle.carYear})`,
-      issueDate: new Date().toISOString().split('T')[0],
-      issueTime: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-      issuedBy: formData.issuedBy,
-      additionalNotes: formData.additionalNotes,
-      status: 'Active',
-      jobCardId: vehicle.jobCardId,
-      chassisNumber: vehicle.chassisNumber
-    };
+      // Create gate pass via API
+      const response = await fetch(`${BASE_URL}/api/gate-passes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          vehicle_number: formData.vehicleNumber,
+          job_card_id: vehicle.jobCardId
+        }),
+      });
 
-    // Add to gate passes
-    setGatePasses(prev => [...prev, newGatePass]);
+      const result = await response.json();
 
-    // Update vehicle to mark gate pass as created
-    setVehicles(prev => prev.map(v => 
-      v.id === vehicle.id ? { ...v, gatePassCreated: true } : v
-    ));
+      if (!response.ok) {
+        if (response.status === 400) {
+          throw new Error(result.message || 'Gate pass already exists for this job card');
+        }
+        throw new Error(`Failed to create gate pass: ${response.status}`);
+      }
 
-    handleCloseCreateDialog();
+      console.log('✅ Gate pass created:', result);
+      
+      // Show success message
+      setSuccessMessage('Gate pass created successfully!');
+      
+      // Refresh the gate passes list
+      fetchGatePasses();
+      
+      handleCloseCreateDialog();
+      
+    } catch (error) {
+      console.error('❌ Error creating gate pass:', error);
+      setError(error.message || 'Failed to create gate pass');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handlePrintGatePass = (gatePass) => {
-    // In real app, this would generate a printable gate pass
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
       <html>
         <head>
-          <title>Gate Pass - ${gatePass.gatePassNumber}</title>
+          <title>Gate Pass - ${gatePass.gate_pass_number || `GP-${gatePass.id}`}</title>
           <style>
             body { font-family: Arial, sans-serif; margin: 20px; }
             .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
@@ -190,21 +266,20 @@ function GatePass() {
         <body>
           <div class="header">
             <h1>GATE PASS</h1>
-            <h2>${gatePass.gatePassNumber}</h2>
+            <h2>${gatePass.gate_pass_number || `GP-${gatePass.id}`}</h2>
           </div>
           <div class="details">
-            <div class="detail-row"><strong>Vehicle Number:</strong> ${gatePass.vehicleNumber}</div>
-            <div class="detail-row"><strong>Customer Name:</strong> ${gatePass.customerName}</div>
-            <div class="detail-row"><strong>Car Details:</strong> ${gatePass.carDetails}</div>
-            <div class="detail-row"><strong>Chassis Number:</strong> ${gatePass.chassisNumber}</div>
-            <div class="detail-row"><strong>Issue Date:</strong> ${gatePass.issueDate}</div>
-            <div class="detail-row"><strong>Issue Time:</strong> ${gatePass.issueTime}</div>
-            <div class="detail-row"><strong>Issued By:</strong> ${gatePass.issuedBy}</div>
-            ${gatePass.additionalNotes ? `<div class="detail-row"><strong>Notes:</strong> ${gatePass.additionalNotes}</div>` : ''}
+            <div class="detail-row"><strong>Vehicle Number:</strong> ${gatePass.vehicle_number}</div>
+            <div class="detail-row"><strong>Job Card ID:</strong> ${gatePass.job_card_id}</div>
+            <div class="detail-row"><strong>Issue Date:</strong> ${new Date(gatePass.created_at).toLocaleDateString()}</div>
+            <div class="detail-row"><strong>Issue Time:</strong> ${new Date(gatePass.created_at).toLocaleTimeString()}</div>
+            <div class="detail-row"><strong>Status:</strong> ${gatePass.status || 'Active'}</div>
+            ${gatePass.additional_notes ? `<div class="detail-row"><strong>Notes:</strong> ${gatePass.additional_notes}</div>` : ''}
           </div>
           <div class="qr-code">
             <div>Scan QR Code for Verification</div>
             <div style="margin-top: 10px;">[QR Code Placeholder]</div>
+            <div style="font-size: 12px; margin-top: 5px;">Gate Pass ID: ${gatePass.id}</div>
           </div>
           <div class="footer">
             <p>This gate pass must be presented when exiting the premises.</p>
@@ -218,13 +293,69 @@ function GatePass() {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'Active': return 'success';
-      case 'Used': return 'default';
-      case 'Expired': return 'error';
-      default: return 'default';
+    if (!status) return 'default';
+    
+    switch (status.toLowerCase()) {
+      case 'active':
+      case 'approved':
+        return 'success';
+      case 'used':
+      case 'completed':
+        return 'info';
+      case 'pending':
+        return 'warning';
+      case 'expired':
+      case 'rejected':
+      case 'cancelled':
+        return 'error';
+      default:
+        return 'default';
     }
   };
+
+  const getStatusDisplay = (status) => {
+    if (!status) return 'Active';
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'Invalid Date';
+    }
+  };
+
+  const formatDateTime = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      return new Date(dateString).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return 'Invalid Date';
+    }
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <CircularProgress size={60} />
+        <Typography variant="h6" sx={{ ml: 2 }}>
+          Loading gate passes...
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -238,14 +369,38 @@ function GatePass() {
             Create and manage vehicle gate passes for completed jobs
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenCreate()}
-        >
-          Create Gate Pass
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={fetchGatePasses}
+          >
+            Refresh
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenCreate()}
+          >
+            Create Gate Pass
+          </Button>
+        </Box>
       </Box>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={() => setSuccessMessage('')}
+        message={successMessage}
+      />
 
       {/* Alert Info */}
       <Alert severity="info" sx={{ mb: 3 }}>
@@ -268,92 +423,105 @@ function GatePass() {
                 Vehicles with completed jobs that can receive gate passes
               </Typography>
               
-              <TableContainer component={Paper} sx={{ mt: 2 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Vehicle No.</TableCell>
-                      <TableCell>Customer</TableCell>
-                      <TableCell>Car Details</TableCell>
-                      <TableCell>Action</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {eligibleVehicles.map((vehicle) => (
-                      <TableRow key={vehicle.id}>
-                        <TableCell>{vehicle.vehicleNumber}</TableCell>
-                        <TableCell>{vehicle.customerName}</TableCell>
-                        <TableCell>{vehicle.carMake} {vehicle.carModel}</TableCell>
-                        <TableCell>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleOpenCreate(vehicle)}
-                          >
-                            Create Pass
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {eligibleVehicles.length === 0 && (
+              {vehiclesLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <CircularProgress />
+                </Box>
+              ) : (
+                <TableContainer component={Paper} sx={{ mt: 2 }}>
+                  <Table size="small">
+                    <TableHead>
                       <TableRow>
-                        <TableCell colSpan={4} align="center">
-                          <Typography variant="body2" color="textSecondary">
-                            No vehicles ready for gate pass
-                          </Typography>
-                        </TableCell>
+                        <TableCell>Vehicle No.</TableCell>
+                        <TableCell>Customer</TableCell>
+                        <TableCell>Car Details</TableCell>
+                        <TableCell>Action</TableCell>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                    </TableHead>
+                    <TableBody>
+                      {eligibleVehicles.map((vehicle) => (
+                        <TableRow key={vehicle.id}>
+                          <TableCell>{vehicle.vehicleNumber}</TableCell>
+                          <TableCell>{vehicle.customerName}</TableCell>
+                          <TableCell>{vehicle.carMake} {vehicle.carModel}</TableCell>
+                          <TableCell>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => handleOpenCreate(vehicle)}
+                            >
+                              Create Pass
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {eligibleVehicles.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4} align="center">
+                            <Typography variant="body2" color="textSecondary">
+                              No vehicles ready for gate pass
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
             </CardContent>
           </Card>
         </Grid>
 
-        {/* All Vehicles Status */}
+        {/* Gate Pass Statistics */}
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom color="primary">
-                All Vehicles Status
-              </Typography>
-              <Typography variant="body2" color="textSecondary" gutterBottom>
-                Current gate pass status for all vehicles
+                Gate Pass Statistics
               </Typography>
               
-              <TableContainer component={Paper} sx={{ mt: 2 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Vehicle No.</TableCell>
-                      <TableCell>Job Status</TableCell>
-                      <TableCell>Gate Pass</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {vehicles.map((vehicle) => (
-                      <TableRow key={vehicle.id}>
-                        <TableCell>{vehicle.vehicleNumber}</TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={vehicle.jobCompleted ? 'Completed' : 'In Progress'} 
-                            color={vehicle.jobCompleted ? 'success' : 'warning'}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={vehicle.gatePassCreated ? 'Issued' : 'Not Issued'} 
-                            color={vehicle.gatePassCreated ? 'primary' : 'default'}
-                            size="small"
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+              <Grid container spacing={2} sx={{ mt: 1 }}>
+                <Grid item xs={6}>
+                  <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: 'primary.main', color: 'white' }}>
+                    <Typography variant="h4" fontWeight="bold">
+                      {gatePasses.length}
+                    </Typography>
+                    <Typography variant="body2">
+                      Total Gate Passes
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={6}>
+                  <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: 'success.main', color: 'white' }}>
+                    <Typography variant="h4" fontWeight="bold">
+                      {gatePasses.filter(gp => gp.status?.toLowerCase() === 'active' || !gp.status).length}
+                    </Typography>
+                    <Typography variant="body2">
+                      Active Passes
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={6}>
+                  <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: 'info.main', color: 'white' }}>
+                    <Typography variant="h4" fontWeight="bold">
+                      {gatePasses.filter(gp => gp.status?.toLowerCase() === 'used').length}
+                    </Typography>
+                    <Typography variant="body2">
+                      Used Passes
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={6}>
+                  <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: 'warning.main', color: 'white' }}>
+                    <Typography variant="h4" fontWeight="bold">
+                      {eligibleVehicles.length}
+                    </Typography>
+                    <Typography variant="body2">
+                      Ready for Pass
+                    </Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
         </Grid>
@@ -362,21 +530,25 @@ function GatePass() {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom color="primary">
-                Gate Pass History
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6" color="primary">
+                  Gate Pass History
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Total: {gatePasses.length} gate passes
+                </Typography>
+              </Box>
               
               <TableContainer component={Paper}>
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Gate Pass No.</TableCell>
-                      <TableCell>Vehicle No.</TableCell>
-                      <TableCell>Customer Name</TableCell>
-                      <TableCell>Issue Date</TableCell>
-                      <TableCell>Issued By</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Actions</TableCell>
+                      <TableCell><strong>Gate Pass ID</strong></TableCell>
+                      <TableCell><strong>Vehicle Number</strong></TableCell>
+                      <TableCell><strong>Job Card ID</strong></TableCell>
+                      <TableCell><strong>Issue Date & Time</strong></TableCell>
+                      <TableCell><strong>Status</strong></TableCell>
+                      <TableCell><strong>Actions</strong></TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -384,16 +556,29 @@ function GatePass() {
                       <TableRow key={gatePass.id}>
                         <TableCell>
                           <Typography variant="body2" fontWeight="bold">
-                            {gatePass.gatePassNumber}
+                            {gatePass.gate_pass_number || `GP-${gatePass.id.toString().padStart(4, '0')}`}
                           </Typography>
                         </TableCell>
-                        <TableCell>{gatePass.vehicleNumber}</TableCell>
-                        <TableCell>{gatePass.customerName}</TableCell>
-                        <TableCell>{gatePass.issueDate}</TableCell>
-                        <TableCell>{gatePass.issuedBy}</TableCell>
+                        <TableCell>{gatePass.vehicle_number}</TableCell>
                         <TableCell>
                           <Chip 
-                            label={gatePass.status} 
+                            label={`JC-${gatePass.job_card_id}`} 
+                            color="primary" 
+                            variant="outlined"
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">
+                            {formatDate(gatePass.created_at)}
+                          </Typography>
+                          <Typography variant="caption" color="textSecondary">
+                            {new Date(gatePass.created_at).toLocaleTimeString()}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={getStatusDisplay(gatePass.status)} 
                             color={getStatusColor(gatePass.status)}
                             size="small"
                           />
@@ -403,6 +588,7 @@ function GatePass() {
                             color="primary" 
                             onClick={() => handleOpenView(gatePass)}
                             size="small"
+                            title="View Details"
                           >
                             <ViewIcon />
                           </IconButton>
@@ -410,6 +596,7 @@ function GatePass() {
                             color="secondary" 
                             onClick={() => handlePrintGatePass(gatePass)}
                             size="small"
+                            title="Print Gate Pass"
                           >
                             <PrintIcon />
                           </IconButton>
@@ -418,10 +605,18 @@ function GatePass() {
                     ))}
                     {gatePasses.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={7} align="center">
+                        <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                           <Typography variant="body2" color="textSecondary">
                             No gate passes created yet
                           </Typography>
+                          <Button
+                            variant="outlined"
+                            startIcon={<AddIcon />}
+                            onClick={() => handleOpenCreate()}
+                            sx={{ mt: 1 }}
+                          >
+                            Create First Gate Pass
+                          </Button>
                         </TableCell>
                       </TableRow>
                     )}
@@ -448,6 +643,7 @@ function GatePass() {
               select
               fullWidth
               required
+              disabled={submitting}
             >
               {eligibleVehicles.map(vehicle => (
                 <MenuItem key={vehicle.id} value={vehicle.vehicleNumber}>
@@ -465,6 +661,7 @@ function GatePass() {
                   onChange={handleInputChange}
                   fullWidth
                   required
+                  disabled={submitting}
                 />
                 <TextField
                   label="Additional Notes"
@@ -475,6 +672,7 @@ function GatePass() {
                   rows={3}
                   fullWidth
                   placeholder="Any special instructions or notes..."
+                  disabled={submitting}
                 />
                 
                 {/* Vehicle Details Preview */}
@@ -488,23 +686,35 @@ function GatePass() {
                       <Typography variant="body2">
                         <strong>Customer:</strong> {vehicle.customerName}<br/>
                         <strong>Vehicle:</strong> {vehicle.carMake} {vehicle.carModel} ({vehicle.carYear})<br/>
-                        <strong>Chassis:</strong> {vehicle.chassisNumber}
+                        <strong>Chassis:</strong> {vehicle.chassisNumber}<br/>
+                        <strong>Job Card ID:</strong> {vehicle.jobCardId}
                       </Typography>
                     ) : null;
                   })()}
                 </Card>
+
+                {/* API Note */}
+                <Alert severity="info">
+                  <Typography variant="body2">
+                    <strong>Note:</strong> The gate pass will be automatically linked to the job card. 
+                    The vehicle number and job card ID will be sent to the API.
+                  </Typography>
+                </Alert>
               </>
             )}
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseCreateDialog}>Cancel</Button>
+          <Button onClick={handleCloseCreateDialog} disabled={submitting}>
+            Cancel
+          </Button>
           <Button 
             onClick={handleCreateGatePass} 
             variant="contained"
-            disabled={!formData.vehicleNumber}
+            disabled={!formData.vehicleNumber || submitting}
+            startIcon={submitting ? <CircularProgress size={16} /> : <AddIcon />}
           >
-            Create Gate Pass
+            {submitting ? 'Creating...' : 'Create Gate Pass'}
           </Button>
         </DialogActions>
       </Dialog>

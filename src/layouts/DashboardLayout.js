@@ -29,7 +29,9 @@ import {
   Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
  QrCode as NumberPlateIcon,
-  People as UsersIcon 
+  People as UsersIcon,
+   Receipt as PettyCashIcon,
+  PointOfSale as SalesIcon
 } from '@mui/icons-material';
 
 import { useAuth } from '../contexts/AuthContext';
@@ -53,6 +55,8 @@ import UserView from '../pages/UserView';
 import UserForm from '../pages/UserForm';
 import PettyCashDetails from '../pages/PettyCashDetails';
 import PettySalesDetails from 'pages/PettySalesDetails';
+import PettyCashList from 'pages/PettyCashList';
+import SalesList from 'pages/SalesList';
 const drawerWidth = 240;
 
 const menuItems = [
@@ -63,6 +67,8 @@ const menuItems = [
   { text: 'Purchase Requisition', icon: <PurchaseIcon />, path: '/purchase-requisition', roles: ['admin','service_advisor'] },
   { text: 'Number Plates', icon: <NumberPlateIcon />, path: '/number-plates', roles: ['admin','service_advisor', 'accounts'] },
    { text: 'Users', icon: <UsersIcon />, path: '/users', roles: ['admin', 'service_advisor', 'accounts'] }, 
+    { text: 'Petty Cash', icon: <PettyCashIcon />, path: '/petty-cash', roles: ['admin','accounts'] },
+  { text: 'Sales', icon: <SalesIcon />, path: '/sales', roles: ['admin','accounts'] },
 
  
 ];
@@ -295,6 +301,8 @@ function DashboardLayout() {
   <Route path="/users/edit/:id" element={<UserForm />} />
   <Route path="/petty-cash/:id" element={<PettyCashDetails />} />
   <Route path="/petty-sales/:id" element={<PettySalesDetails />} />
+  <Route path="/petty-cash" element={<PettyCashList />} />
+  <Route path="/sales" element={<SalesList />} />
   
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
