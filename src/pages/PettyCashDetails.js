@@ -52,15 +52,71 @@ function PettyCashDetails() {
   const isAccountsDept = user?.role === 'accounts';
 
   // Fetch petty cash details from API
-  useEffect(() => {
-    const fetchPettyCash = async () => {
-      try {
-        setLoading(true);
-        setError('');
+  // useEffect(() => {
+  //   const fetchPettyCash = async () => {
+  //     try {
+  //       setLoading(true);
+  //       setError('');
 
-        console.log('🔍 Fetching petty cash list to find entry...');
+  //       console.log('🔍 Fetching petty cash list to find entry...');
         
-        const response = await fetch(`${BASE_URL}/api/cash/petty`, {
+  //       const response = await fetch(`${BASE_URL}/api/cash/petty`, {
+  //         method: 'GET',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           'Accept': 'application/json',
+  //           'Authorization': `Bearer ${token}`,
+  //         },
+  //       });
+
+  //       if (!response.ok) {
+  //         throw new Error(`Failed to fetch petty cash list: ${response.status}`);
+  //       }
+
+  //       const result = await response.json();
+  //       console.log('✅ Petty cash list fetched:', result);
+        
+  //       if (result.status && Array.isArray(result.data)) {
+  //         // Find the specific petty cash entry by ID
+  //         const foundEntry = result.data.find(entry => entry.id == id);
+          
+  //         if (foundEntry) {
+  //           console.log('✅ Petty cash entry found:', foundEntry);
+  //           setPettyCash(foundEntry);
+  //         } else {
+  //           throw new Error(`Petty cash entry with ID ${id} not found in the list`);
+  //         }
+  //       } else {
+  //         throw new Error('Invalid response format from petty cash API');
+  //       }
+        
+  //     } catch (error) {
+  //       console.error('❌ Error fetching petty cash:', error);
+  //       setError(error.message || 'Failed to fetch petty cash details');
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   if (id) {
+  //     fetchPettyCash();
+  //   } else {
+  //     setError('No petty cash ID provided');
+  //     setLoading(false);
+  //   }
+  // }, [id, token, BASE_URL]);
+  // Fetch petty cash details from API
+useEffect(() => {
+  const fetchPettyCash = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      console.log('🔍 Fetching petty cash details...');
+      
+      // Try to fetch the specific petty cash entry directly first
+      try {
+        const directResponse = await fetch(`${BASE_URL}/api/cash/petty/${id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -69,42 +125,81 @@ function PettyCashDetails() {
           },
         });
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch petty cash list: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ Petty cash list fetched:', result);
-        
-        if (result.status && Array.isArray(result.data)) {
-          // Find the specific petty cash entry by ID
-          const foundEntry = result.data.find(entry => entry.id == id);
+        if (directResponse.ok) {
+          const directResult = await directResponse.json();
+          console.log('✅ Petty cash entry fetched directly:', directResult);
           
-          if (foundEntry) {
-            console.log('✅ Petty cash entry found:', foundEntry);
-            setPettyCash(foundEntry);
-          } else {
-            throw new Error(`Petty cash entry with ID ${id} not found in the list`);
+          if (directResult.status && directResult.data) {
+            setPettyCash(directResult.data);
+            return;
           }
-        } else {
-          throw new Error('Invalid response format from petty cash API');
+        }
+      } catch (directError) {
+        console.log('ℹ️ Direct fetch failed, trying list method...');
+      }
+
+      // If direct fetch fails, try fetching from the list
+      console.log('🔍 Fetching petty cash list to find entry...');
+      
+      const response = await fetch(`${BASE_URL}/api/cash/petty`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch petty cash list: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Petty cash list fetched:', result);
+      
+      // FIX: Handle the new API response structure
+      if (result.status && result.data) {
+        // The data could be an array or an object with petty_cash property
+        let entries = [];
+        
+        if (Array.isArray(result.data)) {
+          entries = result.data;
+        } else if (result.data.petty_cash && Array.isArray(result.data.petty_cash)) {
+          entries = result.data.petty_cash;
+        } else if (Array.isArray(result.data.data)) {
+          entries = result.data.data;
         }
         
-      } catch (error) {
-        console.error('❌ Error fetching petty cash:', error);
-        setError(error.message || 'Failed to fetch petty cash details');
-      } finally {
-        setLoading(false);
+        console.log('🔍 Extracted entries:', entries);
+        
+        // Find the specific petty cash entry by ID
+        const foundEntry = entries.find(entry => entry.id == id);
+        
+        if (foundEntry) {
+          console.log('✅ Petty cash entry found:', foundEntry);
+          setPettyCash(foundEntry);
+        } else {
+          throw new Error(`Petty cash entry with ID ${id} not found`);
+        }
+      } else {
+        throw new Error('Invalid response format from petty cash API');
       }
-    };
-
-    if (id) {
-      fetchPettyCash();
-    } else {
-      setError('No petty cash ID provided');
+      
+    } catch (error) {
+      console.error('❌ Error fetching petty cash:', error);
+      setError(error.message || 'Failed to fetch petty cash details');
+    } finally {
       setLoading(false);
     }
-  }, [id, token, BASE_URL]);
+  };
+
+  if (id) {
+    fetchPettyCash();
+  } else {
+    setError('No petty cash ID provided');
+    setLoading(false);
+  }
+}, [id, token, BASE_URL]);
 
   // Handle delete petty cash entry
   const handleDelete = async () => {
