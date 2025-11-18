@@ -42,7 +42,7 @@ import Dashboard from '../pages/Dashboard';
 import JobCards from '../pages/JobCards';
 import JobCardView from '../pages/JobCardView';
 import JobCardForm from '../pages/JobCardForm';
-import CashManagement from '../pages/CashManagement';
+// import CashManagement from '../pages/CashManagement';
 // import GatePass from '../pages/GatePass';
 // import GatePassView from '../pages/GatePassView';
 // import PurchaseRequisition from '../pages/PurchaseRequisition';
@@ -62,7 +62,7 @@ const drawerWidth = 240;
 const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', roles: ['admin','service_advisor', 'accounts'] },
   { text: 'Job Cards', icon: <JobCardsIcon />, path: '/job-cards', roles: ['admin','service_advisor', 'accounts'] },
-  { text: 'Cash Management', icon: <CashIcon />, path: '/cash-management', roles: ['admin','accounts'] },
+  // { text: 'Cash Management', icon: <CashIcon />, path: '/cash-management', roles: ['admin','accounts'] },
   // { text: 'Gate Pass', icon: <GatePassIcon />, path: '/gate-pass', roles: ['admin','service_advisor'] },
   // { text: 'Purchase Requisition', icon: <PurchaseIcon />, path: '/purchase-requisition', roles: ['admin','service_advisor'] },
   { text: 'Number Plates', icon: <NumberPlateIcon />, path: '/number-plates', roles: ['admin','service_advisor', 'accounts'] },
@@ -286,7 +286,7 @@ function DashboardLayout() {
             <Route path="/job-cards/view/:id" element={<JobCardView />} />
             <Route path="/job-cards/add" element={<JobCardForm />} />
             <Route path="/job-cards/edit/:id" element={<JobCardForm />} />
-            <Route path="cash-management" element={<CashManagement />} />
+            {/* <Route path="cash-management" element={<CashManagement />} /> */}
             {/* <Route path="gate-pass" element={<GatePass />} /> */}
             {/* <Route path="/gate-pass/view/:id" element={<GatePassView />} /> */}
             {/* <Route path="purchase-requisition" element={<PurchaseRequisition />} /> */}

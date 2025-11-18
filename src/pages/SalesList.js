@@ -1,4 +1,3 @@
-
 // import React, { useState, useEffect } from 'react';
 // import {
 //   Box,
@@ -48,6 +47,8 @@
 //   const [searchTerm, setSearchTerm] = useState('');
 //   const [page, setPage] = useState(0);
 //   const [rowsPerPage, setRowsPerPage] = useState(10);
+//   const [totalCount, setTotalCount] = useState(0);
+//   const [totalAmount, setTotalAmount] = useState(0);
 
 //   // Check if current user is from accounts department
 //   const isAccountsDept = user?.role === 'accounts';
@@ -58,7 +59,19 @@
 //       setLoading(true);
 //       setError('');
 
-//       const response = await fetch(`${BASE_URL}/api/cash/sales`, {
+//       // Build query parameters
+//       const params = new URLSearchParams({
+//         page: (page + 1).toString(),
+//         limit: rowsPerPage.toString()
+//       });
+
+//       // Add search parameters if provided
+//       if (searchTerm) {
+//         params.append('vehicle_number', searchTerm);
+//         params.append('job_card_number', searchTerm);
+//       }
+
+//       const response = await fetch(`${BASE_URL}/api/cash/sales?${params.toString()}`, {
 //         method: 'GET',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -74,8 +87,10 @@
 //       const result = await response.json();
 //       console.log('✅ Sales list fetched:', result);
       
-//       if (result.status && Array.isArray(result.data)) {
-//         setSales(result.data);
+//       if (result.status && result.data) {
+//         setSales(result.data.sales_cash || []);
+//         setTotalCount(result.data.total || 0);
+//         setTotalAmount(result.data.total_amount || 0);
 //       } else {
 //         throw new Error('Invalid response format from sales API');
 //       }
@@ -90,48 +105,30 @@
 
 //   useEffect(() => {
 //     fetchSales();
-//   }, []);
+//   }, [page, rowsPerPage]); // Refetch when page or rowsPerPage changes
 
-//   // Enhanced search filter with better error handling
-//   const filteredSales = sales.filter(entry => {
-//     if (!searchTerm.trim()) return true;
-    
-//     const searchLower = searchTerm.toLowerCase().trim();
-    
-//     // Check each field safely with optional chaining and null checks
-//     return (
-//       (entry.vehicle_number?.toLowerCase() || '').includes(searchLower) ||
-//       (entry.job_card_number?.toLowerCase() || '').includes(searchLower) ||
-//       (entry.mode_of_payment?.toLowerCase() || '').includes(searchLower) ||
-//       (entry.transaction_number?.toLowerCase() || '').includes(searchLower) ||
-//       (entry.amount?.toString() || '').includes(searchTerm) ||
-//       (entry.id?.toString() || '').includes(searchTerm)
-//     );
-//   });
+//   // Handle search - reset to first page and fetch
+//   const handleSearch = () => {
+//     setPage(0);
+//     fetchSales();
+//   };
 
-//   // Debug: Log search results
-//   useEffect(() => {
-//     console.log('🔍 Search Results:', {
-//       searchTerm,
-//       totalEntries: sales.length,
-//       filteredEntries: filteredSales.length,
-//       sampleEntry: sales[0] // Log first entry to see structure
-//     });
-//   }, [searchTerm, sales, filteredSales]);
+//   // Handle clear search
+//   const handleClearSearch = () => {
+//     setSearchTerm('');
+//     setPage(0);
+//     // Fetch will be triggered by useEffect due to page change
+//   };
 
-//   // Pagination
-//   const paginatedSales = filteredSales.slice(
-//     page * rowsPerPage,
-//     page * rowsPerPage + rowsPerPage
-//   );
-
+//   // Handle page change
 //   const handleChangePage = (event, newPage) => {
 //     setPage(newPage);
 //   };
 
+//   // Handle rows per page change
 //   const handleChangeRowsPerPage = (event) => {
 //     setRowsPerPage(parseInt(event.target.value, 10));
-//     setPage(0);
+//     setPage(0); // Reset to first page when changing rows per page
 //   };
 
 //   const formatDate = (dateString) => {
@@ -192,24 +189,19 @@
 //     navigate('/sales/create');
 //   };
 
-//   const calculateTotalAmount = () => {
-//     return filteredSales.reduce((total, entry) => total + parseFloat(entry.amount || 0), 0);
+//   // Calculate current page total amount
+//   const calculateCurrentPageTotal = () => {
+//     return sales.reduce((total, entry) => total + parseFloat(entry.amount || 0), 0);
 //   };
 
-//   // Calculate sales by payment mode
+//   // Calculate sales by payment mode for current page
 //   const calculatePaymentModeTotals = () => {
 //     const totals = {};
-//     filteredSales.forEach(entry => {
+//     sales.forEach(entry => {
 //       const mode = entry.mode_of_payment || 'Unknown';
 //       totals[mode] = (totals[mode] || 0) + parseFloat(entry.amount || 0);
 //     });
 //     return totals;
-//   };
-
-//   // Clear search function
-//   const handleClearSearch = () => {
-//     setSearchTerm('');
-//     setPage(0);
 //   };
 
 //   if (loading) {
@@ -261,34 +253,52 @@
 
 //         {/* Summary Cards */}
 //         <Grid container spacing={3} sx={{ mb: 3 }}>
-//           <Grid item xs={12} md={4}>
+//           <Grid item xs={12} md={3}>
 //             <Card sx={{ backgroundColor: '#49a3f1', color: 'white' }}>
 //               <CardContent>
 //                 <Typography variant="h6" gutterBottom>
 //                   Total Entries
 //                 </Typography>
 //                 <Typography variant="h4" fontWeight="bold">
-//                   {filteredSales.length}
+//                   {totalCount}
 //                 </Typography>
 //                 <Typography variant="body2">
-//                   {searchTerm && `Filtered from ${sales.length}`}
+//                   {searchTerm && 'Filtered results'}
 //                 </Typography>
 //               </CardContent>
 //             </Card>
 //           </Grid>
-//           <Grid item xs={12} md={4}>
+//           <Grid item xs={12} md={3}>
 //             <Card sx={{ backgroundColor: '#4caf50', color: 'white' }}>
 //               <CardContent>
 //                 <Typography variant="h6" gutterBottom>
 //                   Total Sales
 //                 </Typography>
 //                 <Typography variant="h4" fontWeight="bold">
-//                   {formatCurrency(calculateTotalAmount())}
+//                   {formatCurrency(totalAmount)}
+//                 </Typography>
+//                 <Typography variant="body2">
+//                   All entries total
 //                 </Typography>
 //               </CardContent>
 //             </Card>
 //           </Grid>
-//           <Grid item xs={12} md={4}>
+//           <Grid item xs={12} md={3}>
+//             <Card sx={{ backgroundColor: '#ff9800', color: 'white' }}>
+//               <CardContent>
+//                 <Typography variant="h6" gutterBottom>
+//                   Current Page
+//                 </Typography>
+//                 <Typography variant="h4" fontWeight="bold">
+//                   {formatCurrency(calculateCurrentPageTotal())}
+//                 </Typography>
+//                 <Typography variant="body2">
+//                   {sales.length} entries
+//                 </Typography>
+//               </CardContent>
+//             </Card>
+//           </Grid>
+//           <Grid item xs={12} md={3}>
 //             <Card sx={{ backgroundColor: '#9c27b0', color: 'white' }}>
 //               <CardContent>
 //                 <Typography variant="h6" gutterBottom>
@@ -296,6 +306,9 @@
 //                 </Typography>
 //                 <Typography variant="h4" fontWeight="bold">
 //                   {Object.keys(paymentModeTotals).length}
+//                 </Typography>
+//                 <Typography variant="body2">
+//                   On this page
 //                 </Typography>
 //               </CardContent>
 //             </Card>
@@ -326,11 +339,13 @@
 //         <Paper sx={{ p: 2, mb: 3 }}>
 //           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
 //             <TextField
-//               placeholder="Search by ID, vehicle, job card, payment mode, transaction #, or amount..."
+//               placeholder="Search by vehicle number or job card number..."
 //               value={searchTerm}
-//               onChange={(e) => {
-//                 setSearchTerm(e.target.value);
-//                 setPage(0); // Reset to first page when searching
+//               onChange={(e) => setSearchTerm(e.target.value)}
+//               onKeyPress={(e) => {
+//                 if (e.key === 'Enter') {
+//                   handleSearch();
+//                 }
 //               }}
 //               sx={{ minWidth: 400 }}
 //               size="small"
@@ -353,16 +368,23 @@
 //                 ),
 //               }}
 //             />
+//             <Button
+//               variant="contained"
+//               onClick={handleSearch}
+//               disabled={loading}
+//             >
+//               Search
+//             </Button>
 //             <Box sx={{ flexGrow: 1 }} />
 //             {searchTerm && (
 //               <Typography variant="body2" color="textSecondary">
-//                 Found {filteredSales.length} results
+//                 Showing filtered results
 //               </Typography>
 //             )}
 //             {/* <Button
 //               variant="outlined"
 //               startIcon={<DownloadIcon />}
-//               disabled={filteredSales.length === 0}
+//               disabled={sales.length === 0}
 //             >
 //               Export
 //             </Button> */}
@@ -392,7 +414,7 @@
 //                 </TableRow>
 //               </TableHead>
 //               <TableBody>
-//                 {paginatedSales.length === 0 ? (
+//                 {sales.length === 0 ? (
 //                   <TableRow>
 //                     <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
 //                       <SalesIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
@@ -421,7 +443,7 @@
 //                     </TableCell>
 //                   </TableRow>
 //                 ) : (
-//                   paginatedSales.map((entry) => (
+//                   sales.map((entry) => (
 //                     <TableRow 
 //                       key={entry.id}
 //                       hover
@@ -512,28 +534,33 @@
 //           </TableContainer>
           
 //           {/* Pagination */}
-//           {filteredSales.length > 0 && (
+//           {sales.length > 0 && (
 //             <TablePagination
 //               rowsPerPageOptions={[5, 10, 25, 50]}
 //               component="div"
-//               count={filteredSales.length}
+//               count={totalCount}
 //               rowsPerPage={rowsPerPage}
 //               page={page}
 //               onPageChange={handleChangePage}
 //               onRowsPerPageChange={handleChangeRowsPerPage}
+//               labelRowsPerPage="Rows per page:"
+//               labelDisplayedRows={({ from, to, count }) => 
+//                 `${from}-${to} of ${count !== -1 ? count : `more than ${to}`}`
+//               }
 //             />
 //           )}
 //         </Paper>
 
 //         {/* Quick Stats */}
-//         {filteredSales.length > 0 && (
+//         {sales.length > 0 && (
 //           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 //             <Typography variant="body2" color="textSecondary">
-//               Showing {paginatedSales.length} of {filteredSales.length} entries
-//               {searchTerm && ` (filtered from ${sales.length} total)`}
+//               Showing {sales.length} of {totalCount} total entries
+//               {searchTerm && ' (filtered)'}
 //             </Typography>
 //             <Typography variant="body2" color="textSecondary">
-//               Total Sales: {formatCurrency(calculateTotalAmount())}
+//               Page Total: {formatCurrency(calculateCurrentPageTotal())} | 
+//               Grand Total: {formatCurrency(totalAmount)}
 //             </Typography>
 //           </Box>
 //         )}
@@ -543,7 +570,6 @@
 // }
 
 // export default SalesList;
-
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -580,11 +606,12 @@ import {
   Refresh as RefreshIcon,
   Download as DownloadIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 function SalesList() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { token, user } = useAuth();
   const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
   
@@ -600,13 +627,43 @@ function SalesList() {
   // Check if current user is from accounts department
   const isAccountsDept = user?.role === 'accounts';
 
+  // Parse URL search parameters on component mount
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const urlPage = searchParams.get('page');
+    const urlLimit = searchParams.get('limit');
+    const urlVehicleNumber = searchParams.get('vehicle_number');
+    const urlJobCardNumber = searchParams.get('job_card_number');
+
+    // Set state from URL parameters
+    if (urlPage) setPage(parseInt(urlPage) - 1); // Convert to 0-based index
+    if (urlLimit) setRowsPerPage(parseInt(urlLimit));
+    if (urlVehicleNumber) setSearchTerm(urlVehicleNumber);
+    if (urlJobCardNumber && !urlVehicleNumber) setSearchTerm(urlJobCardNumber);
+  }, [location.search]);
+
+  // Update URL with current search parameters
+  const updateURL = () => {
+    const params = new URLSearchParams();
+    params.append('page', (page + 1).toString());
+    params.append('limit', rowsPerPage.toString());
+    
+    if (searchTerm) {
+      params.append('vehicle_number', searchTerm);
+      params.append('job_card_number', searchTerm);
+    }
+
+    // Update browser URL without page reload
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+  };
+
   // Fetch sales data from API
   const fetchSales = async () => {
     try {
       setLoading(true);
       setError('');
 
-      // Build query parameters
+      // Build query parameters for API call
       const params = new URLSearchParams({
         page: (page + 1).toString(),
         limit: rowsPerPage.toString()
@@ -617,6 +674,9 @@ function SalesList() {
         params.append('vehicle_number', searchTerm);
         params.append('job_card_number', searchTerm);
       }
+
+      // Update browser URL
+      updateURL();
 
       const response = await fetch(`${BASE_URL}/api/cash/sales?${params.toString()}`, {
         method: 'GET',
@@ -664,7 +724,8 @@ function SalesList() {
   const handleClearSearch = () => {
     setSearchTerm('');
     setPage(0);
-    // Fetch will be triggered by useEffect due to page change
+    // Clear URL parameters
+    navigate(location.pathname, { replace: true });
   };
 
   // Handle page change
