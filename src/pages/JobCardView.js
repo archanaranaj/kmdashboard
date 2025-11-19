@@ -157,61 +157,7 @@ function JobCardView() {
     fetchJobCard();
   }, [id, token, BASE_URL]);
 
-  // Fetch petty cash entries
-  // const fetchPettyCashEntries = async () => {
-  //   try {
-  //     setPettyCashLoading(true);
-      
-  //     let url = `${BASE_URL}/api/cash/petty`;
-  //     const params = new URLSearchParams();
-      
-  //     if (jobCard?.job_card_number) {
-  //       params.append('job_card_number', jobCard.job_card_number);
-  //       console.log(`🔍 Fetching petty cash for job card number: ${jobCard.job_card_number}`);
-  //     } else {
-  //       console.log('ℹ️ No job card number assigned, skipping petty cash fetch');
-  //       setPettyCashEntries([]);
-  //       return;
-  //     }
-      
-  //     if (jobCard?.vehicle_number) {
-  //       params.append('vehicle_number', jobCard.vehicle_number);
-  //     }
-      
-  //     if (params.toString()) {
-  //       url += `?${params.toString()}`;
-  //     }
-
-  //     console.log(`📡 Fetching petty cash from: ${url}`);
-
-  //     const response = await fetch(url, {
-  //       method: 'GET',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Accept': 'application/json',
-  //         'Authorization': `Bearer ${token}`,
-  //       },
-  //     });
-
-  //     if (response.ok) {
-  //       const result = await response.json();
-  //       console.log('✅ Petty cash entries fetched:', result);
-  //       if (result.status && result.data) {
-  //         setPettyCashEntries(result.data);
-  //       } else {
-  //         setPettyCashEntries([]);
-  //       }
-  //     } else {
-  //       console.error('❌ Failed to fetch petty cash entries');
-  //       setPettyCashEntries([]);
-  //     }
-  //   } catch (error) {
-  //     console.error('❌ Error fetching petty cash entries:', error);
-  //     setPettyCashEntries([]);
-  //   } finally {
-  //     setPettyCashLoading(false);
-  //   }
-  // };
+ 
   // Fetch petty cash entries
 const fetchPettyCashEntries = async () => {
   try {
@@ -269,61 +215,6 @@ const fetchPettyCashEntries = async () => {
   }
 };
 
-  // Fetch petty sales entries
-  // const fetchPettySalesEntries = async () => {
-  //   try {
-  //     setPettySalesLoading(true);
-      
-  //     let url = `${BASE_URL}/api/cash/sales`;
-  //     const params = new URLSearchParams();
-      
-  //     if (jobCard?.job_card_number) {
-  //       params.append('job_card_number', jobCard.job_card_number);
-  //       console.log(`🔍 Fetching petty sales for job card number: ${jobCard.job_card_number}`);
-  //     } else {
-  //       console.log('ℹ️ No job card number assigned, skipping petty sales fetch');
-  //       setPettySalesEntries([]);
-  //       return;
-  //     }
-      
-  //     if (jobCard?.vehicle_number) {
-  //       params.append('vehicle_number', jobCard.vehicle_number);
-  //     }
-      
-  //     if (params.toString()) {
-  //       url += `?${params.toString()}`;
-  //     }
-
-  //     console.log(`📡 Fetching petty sales from: ${url}`);
-
-  //     const response = await fetch(url, {
-  //       method: 'GET',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Accept': 'application/json',
-  //         'Authorization': `Bearer ${token}`,
-  //       },
-  //     });
-
-  //     if (response.ok) {
-  //       const result = await response.json();
-  //       console.log('✅ Petty sales entries fetched:', result);
-  //       if (result.status && result.data) {
-  //         setPettySalesEntries(result.data);
-  //       } else {
-  //         setPettySalesEntries([]);
-  //       }
-  //     } else {
-  //       console.error('❌ Failed to fetch petty sales entries');
-  //       setPettySalesEntries([]);
-  //     }
-  //   } catch (error) {
-  //     console.error('❌ Error fetching petty sales entries:', error);
-  //     setPettySalesEntries([]);
-  //   } finally {
-  //     setPettySalesLoading(false);
-  //   }
-  // };
 
   // Fetch petty sales entries
 const fetchPettySalesEntries = async () => {
@@ -383,56 +274,117 @@ const fetchPettySalesEntries = async () => {
 };
 
   // Fetch gate pass entries
-  const fetchGatePassEntries = async () => {
-    try {
-      setGatePassLoading(true);
+  // const fetchGatePassEntries = async () => {
+  //   try {
+  //     setGatePassLoading(true);
       
-      let url = `${BASE_URL}/api/gate-passes`;
-      const params = new URLSearchParams();
+  //     let url = `${BASE_URL}/api/gate-passes`;
+  //     const params = new URLSearchParams();
       
-      if (jobCard?.vehicle_number) {
-        params.append('vehicle_number', jobCard.vehicle_number);
-        console.log(`🔍 Fetching gate passes for vehicle: ${jobCard.vehicle_number}`);
-      }
+  //     if (jobCard?.vehicle_number) {
+  //       params.append('vehicle_number', jobCard.vehicle_number);
+  //       console.log(`🔍 Fetching gate passes for vehicle: ${jobCard.vehicle_number}`);
+  //     }
       
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
+  //     if (params.toString()) {
+  //       url += `?${params.toString()}`;
+  //     }
 
-      console.log(`📡 Fetching gate passes from: ${url}`);
+  //     console.log(`📡 Fetching gate passes from: ${url}`);
 
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+  //     const response = await fetch(url, {
+  //       method: 'GET',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Accept': 'application/json',
+  //         'Authorization': `Bearer ${token}`,
+  //       },
+  //     });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Gate pass entries fetched:', result);
-        if (result.status && Array.isArray(result.data)) {
-          // Filter gate passes by job card ID
-          const filteredGatePasses = result.data.filter(gatePass => 
-            gatePass.job_card_id == id
-          );
-          setGatePassEntries(filteredGatePasses);
-        } else {
-          setGatePassEntries([]);
-        }
+  //     if (response.ok) {
+  //       const result = await response.json();
+  //       console.log('✅ Gate pass entries fetched:', result);
+  //       if (result.status && Array.isArray(result.data)) {
+  //         // Filter gate passes by job card ID
+  //         const filteredGatePasses = result.data.filter(gatePass => 
+  //           gatePass.job_card_id == id
+  //         );
+  //         setGatePassEntries(filteredGatePasses);
+  //       } else {
+  //         setGatePassEntries([]);
+  //       }
+  //     } else {
+  //       console.error('❌ Failed to fetch gate pass entries');
+  //       setGatePassEntries([]);
+  //     }
+  //   } catch (error) {
+  //     console.error('❌ Error fetching gate pass entries:', error);
+  //     setGatePassEntries([]);
+  //   } finally {
+  //     setGatePassLoading(false);
+  //   }
+  // };
+  // Fetch gate pass entries - FIXED VERSION
+const fetchGatePassEntries = async () => {
+  try {
+    setGatePassLoading(true);
+    
+    let url = `${BASE_URL}/api/gate-passes`;
+    console.log(`📡 Fetching gate passes from: ${url}`);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log('✅ Gate pass API response:', result);
+      
+      // FIX: Correct data structure access
+      if (result.status && result.data && Array.isArray(result.data.gate_passes)) {
+        const gatePasses = result.data.gate_passes;
+        console.log(`✅ Found ${gatePasses.length} gate passes`);
+        
+        // Filter gate passes by job card ID or vehicle number
+        const filteredGatePasses = gatePasses.filter(gatePass => {
+          const matchesJobCard = gatePass.job_card_id == id;
+          const matchesVehicle = gatePass.vehicle_number === jobCard?.vehicle_number;
+          
+          console.log(`GatePass ${gatePass.id}:`, {
+            job_card_id: gatePass.job_card_id,
+            our_job_card_id: id,
+            vehicle_number: gatePass.vehicle_number,
+            our_vehicle: jobCard?.vehicle_number,
+            matchesJobCard,
+            matchesVehicle
+          });
+          
+          return matchesJobCard || matchesVehicle;
+        });
+        
+        console.log('✅ Filtered gate passes:', filteredGatePasses);
+        setGatePassEntries(filteredGatePasses);
       } else {
-        console.error('❌ Failed to fetch gate pass entries');
+        console.log('❌ No gate pass data found in expected structure');
+        console.log('Actual data structure:', result.data);
         setGatePassEntries([]);
       }
-    } catch (error) {
-      console.error('❌ Error fetching gate pass entries:', error);
+    } else {
+      console.error('❌ Failed to fetch gate pass entries:', response.status);
       setGatePassEntries([]);
-    } finally {
-      setGatePassLoading(false);
     }
-  };
+  } catch (error) {
+    console.error('❌ Error fetching gate pass entries:', error);
+    setGatePassEntries([]);
+  } finally {
+    setGatePassLoading(false);
+  }
+};
 
   // Fetch all entries when job card is loaded
   useEffect(() => {

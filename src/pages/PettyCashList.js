@@ -32,11 +32,12 @@
 //   Refresh as RefreshIcon,
 //   Download as DownloadIcon
 // } from '@mui/icons-material';
-// import { useNavigate } from 'react-router-dom';
+// import { useNavigate, useLocation } from 'react-router-dom';
 // import { useAuth } from '../contexts/AuthContext';
 
 // function PettyCashList() {
 //   const navigate = useNavigate();
+//   const location = useLocation();
 //   const { token, user } = useAuth();
 //   const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
   
@@ -52,13 +53,43 @@
 //   // Check if current user is from accounts department
 //   const isAccountsDept = user?.role === 'accounts';
 
+//   // Parse URL search parameters on component mount
+//   useEffect(() => {
+//     const searchParams = new URLSearchParams(location.search);
+//     const urlPage = searchParams.get('page');
+//     const urlLimit = searchParams.get('limit');
+//     const urlVehicleNumber = searchParams.get('vehicle_number');
+//     const urlJobCardNumber = searchParams.get('job_card_number');
+
+//     // Set state from URL parameters
+//     if (urlPage) setPage(parseInt(urlPage) - 1); // Convert to 0-based index
+//     if (urlLimit) setRowsPerPage(parseInt(urlLimit));
+//     if (urlVehicleNumber) setSearchTerm(urlVehicleNumber);
+//     if (urlJobCardNumber && !urlVehicleNumber) setSearchTerm(urlJobCardNumber);
+//   }, [location.search]);
+
+//   // Update URL with current search parameters
+//   const updateURL = () => {
+//     const params = new URLSearchParams();
+//     params.append('page', (page + 1).toString());
+//     params.append('limit', rowsPerPage.toString());
+    
+//     if (searchTerm) {
+//       params.append('vehicle_number', searchTerm);
+//       params.append('job_card_number', searchTerm);
+//     }
+
+//     // Update browser URL without page reload
+//     navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+//   };
+
 //   // Fetch petty cash data from API
 //   const fetchPettyCash = async () => {
 //     try {
 //       setLoading(true);
 //       setError('');
 
-//       // Build query parameters
+//       // Build query parameters for API call
 //       const params = new URLSearchParams({
 //         page: (page + 1).toString(),
 //         limit: rowsPerPage.toString()
@@ -69,6 +100,9 @@
 //         params.append('vehicle_number', searchTerm);
 //         params.append('job_card_number', searchTerm);
 //       }
+
+//       // Update browser URL
+//       updateURL();
 
 //       const response = await fetch(`${BASE_URL}/api/cash/petty?${params.toString()}`, {
 //         method: 'GET',
@@ -116,7 +150,8 @@
 //   const handleClearSearch = () => {
 //     setSearchTerm('');
 //     setPage(0);
-//     // Fetch will be triggered by useEffect due to page change
+//     // Clear URL parameters
+//     navigate(location.pathname, { replace: true });
 //   };
 
 //   // Handle page change
@@ -559,13 +594,13 @@ function PettyCashList() {
   const { token, user } = useAuth();
   const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
   
-  const [pettyCash, setPettyCash] = useState([]);
+  const [allPettyCash, setAllPettyCash] = useState([]); // All data from API
+  const [filteredPettyCash, setFilteredPettyCash] = useState([]); // Filtered data for display
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
 
   // Check if current user is from accounts department
@@ -576,53 +611,26 @@ function PettyCashList() {
     const searchParams = new URLSearchParams(location.search);
     const urlPage = searchParams.get('page');
     const urlLimit = searchParams.get('limit');
-    const urlVehicleNumber = searchParams.get('vehicle_number');
-    const urlJobCardNumber = searchParams.get('job_card_number');
+    const urlSearchTerm = searchParams.get('search');
 
-    // Set state from URL parameters
-    if (urlPage) setPage(parseInt(urlPage) - 1); // Convert to 0-based index
+    if (urlPage) setPage(parseInt(urlPage) - 1);
     if (urlLimit) setRowsPerPage(parseInt(urlLimit));
-    if (urlVehicleNumber) setSearchTerm(urlVehicleNumber);
-    if (urlJobCardNumber && !urlVehicleNumber) setSearchTerm(urlJobCardNumber);
+    if (urlSearchTerm) setSearchTerm(urlSearchTerm);
   }, [location.search]);
 
-  // Update URL with current search parameters
-  const updateURL = () => {
-    const params = new URLSearchParams();
-    params.append('page', (page + 1).toString());
-    params.append('limit', rowsPerPage.toString());
-    
-    if (searchTerm) {
-      params.append('vehicle_number', searchTerm);
-      params.append('job_card_number', searchTerm);
-    }
-
-    // Update browser URL without page reload
-    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
-  };
-
-  // Fetch petty cash data from API
-  const fetchPettyCash = async () => {
+  // Fetch ALL petty cash data from API (no filtering)
+  const fetchAllPettyCash = async () => {
     try {
       setLoading(true);
       setError('');
 
-      // Build query parameters for API call
-      const params = new URLSearchParams({
-        page: (page + 1).toString(),
-        limit: rowsPerPage.toString()
-      });
+      console.log('🔍 Fetching ALL petty cash data...');
+      
+      // Get all data without any filters
+      const apiUrl = `${BASE_URL}/api/cash/petty?limit=1000`;
+      console.log('📡 API URL:', apiUrl);
 
-      // Add search parameters if provided
-      if (searchTerm) {
-        params.append('vehicle_number', searchTerm);
-        params.append('job_card_number', searchTerm);
-      }
-
-      // Update browser URL
-      updateURL();
-
-      const response = await fetch(`${BASE_URL}/api/cash/petty?${params.toString()}`, {
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -636,12 +644,18 @@ function PettyCashList() {
       }
 
       const result = await response.json();
-      console.log('✅ Petty cash list fetched:', result);
+      console.log('✅ Petty cash API response:', result);
       
       if (result.status && result.data) {
-        setPettyCash(result.data.petty_cash || []);
-        setTotalCount(result.data.total || 0);
+        const pettyCashData = result.data.petty_cash || [];
+        console.log(`📊 Loaded ${pettyCashData.length} entries from API`);
+        
+        setAllPettyCash(pettyCashData);
         setTotalAmount(result.data.total_amount || 0);
+        
+        // Apply initial filtering
+        applyFiltering(pettyCashData, searchTerm);
+        
       } else {
         throw new Error('Invalid response format from petty cash API');
       }
@@ -654,22 +668,82 @@ function PettyCashList() {
     }
   };
 
-  useEffect(() => {
-    fetchPettyCash();
-  }, [page, rowsPerPage]); // Refetch when page or rowsPerPage changes
+  // Apply client-side filtering
+  const applyFiltering = (data = allPettyCash, term = searchTerm) => {
+    if (!term.trim()) {
+      // No search term - show all data
+      setFilteredPettyCash(data);
+      console.log(`🔍 No search term - showing all ${data.length} entries`);
+      return;
+    }
 
-  // Handle search - reset to first page and fetch
-  const handleSearch = () => {
-    setPage(0);
-    fetchPettyCash();
+    const filteredData = data.filter(entry => {
+      const vehicleMatch = entry.vehicle_number?.toLowerCase().includes(term.toLowerCase());
+      const jobCardMatch = entry.job_card_number?.toString().includes(term);
+      const descriptionMatch = entry.description?.toLowerCase().includes(term.toLowerCase());
+      
+      return vehicleMatch || jobCardMatch || descriptionMatch;
+    });
+
+    console.log(`🔍 Search for "${term}": Found ${filteredData.length} of ${data.length} entries`);
+    
+    // Log some matches for debugging
+    if (filteredData.length > 0) {
+      console.log('📋 Matching entries:', filteredData.map(entry => ({
+        id: entry.id,
+        vehicle: entry.vehicle_number,
+        job_card: entry.job_card_number,
+        description: entry.description
+      })));
+    } else {
+      console.log('❌ No matches found for search term:', term);
+    }
+
+    setFilteredPettyCash(filteredData);
+    setPage(0); // Reset to first page when filtering
+  };
+
+  // Update URL with current search parameters
+  const updateURL = () => {
+    const params = new URLSearchParams();
+    params.append('page', (page + 1).toString());
+    params.append('limit', rowsPerPage.toString());
+    
+    if (searchTerm) {
+      params.append('search', searchTerm);
+    }
+
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchAllPettyCash();
+  }, []);
+
+  // Apply filtering when search term changes
+  useEffect(() => {
+    applyFiltering(allPettyCash, searchTerm);
+    updateURL();
+  }, [searchTerm, allPettyCash]);
+
+  // Handle search input change with debounce
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   // Handle clear search
   const handleClearSearch = () => {
     setSearchTerm('');
     setPage(0);
-    // Clear URL parameters
     navigate(location.pathname, { replace: true });
+  };
+
+  // Handle Enter key press in search field
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      applyFiltering(allPettyCash, searchTerm);
+    }
   };
 
   // Handle page change
@@ -680,8 +754,18 @@ function PettyCashList() {
   // Handle rows per page change
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Reset to first page when changing rows per page
+    setPage(0);
   };
+
+  // Get paginated data for current page
+  const getPaginatedData = () => {
+    const startIndex = page * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    return filteredPettyCash.slice(startIndex, endIndex);
+  };
+
+  const displayData = getPaginatedData();
+  const totalCount = filteredPettyCash.length;
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -702,6 +786,16 @@ function PettyCashList() {
       style: 'currency',
       currency: 'USD'
     }).format(parseFloat(amount));
+  };
+
+  // Calculate total amount from filtered data
+  const calculateFilteredTotal = () => {
+    return filteredPettyCash.reduce((total, entry) => total + parseFloat(entry.amount || 0), 0);
+  };
+
+  // Calculate current page total
+  const calculateCurrentPageTotal = () => {
+    return displayData.reduce((total, entry) => total + parseFloat(entry.amount || 0), 0);
   };
 
   const handleViewDetails = (id) => {
@@ -725,8 +819,8 @@ function PettyCashList() {
         });
 
         if (response.ok) {
-          // Refresh the list
-          fetchPettyCash();
+          // Refresh the entire list
+          fetchAllPettyCash();
         } else {
           alert('Failed to delete petty cash entry');
         }
@@ -739,11 +833,6 @@ function PettyCashList() {
 
   const handleCreateNew = () => {
     navigate('/petty-cash/create');
-  };
-
-  // Calculate total amount from current page data (fallback)
-  const calculateCurrentPageTotal = () => {
-    return pettyCash.reduce((total, entry) => total + parseFloat(entry.amount || 0), 0);
   };
 
   if (loading) {
@@ -767,7 +856,7 @@ function PettyCashList() {
               💰 Petty Cash Management
             </Typography>
             <Typography variant="body1" color="textSecondary">
-              Manage and track all petty cash transactions
+              Manage and track all petty cash transactions (Client-side Search)
             </Typography>
           </Box>
           
@@ -775,7 +864,7 @@ function PettyCashList() {
             <Button
               variant="outlined"
               startIcon={<RefreshIcon />}
-              onClick={fetchPettyCash}
+              onClick={fetchAllPettyCash}
             >
               Refresh
             </Button>
@@ -791,49 +880,69 @@ function PettyCashList() {
           </Box>
         </Box>
 
+        {/* Client-side Search Notice */}
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <strong>Client-side Search Active:</strong> Searching through {allPettyCash.length} entries locally for fastest results.
+        </Alert>
+
         {/* Summary Cards */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={3}>
             <Card sx={{ backgroundColor: '#49a3f1', color: 'white' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Total Entries
                 </Typography>
                 <Typography variant="h4" fontWeight="bold">
-                  {totalCount}
+                  {allPettyCash.length}
                 </Typography>
                 <Typography variant="body2">
-                  {searchTerm && 'Filtered results'}
+                  All entries in system
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={3}>
             <Card sx={{ backgroundColor: '#4caf50', color: 'white' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Total Amount
+                  Filtered Entries
                 </Typography>
                 <Typography variant="h4" fontWeight="bold">
-                  {formatCurrency(totalAmount)}
+                  {totalCount}
                 </Typography>
                 <Typography variant="body2">
-                  All entries total
+                  {searchTerm ? 'Search results' : 'All entries'}
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={3}>
             <Card sx={{ backgroundColor: '#ff9800', color: 'white' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Current Page Total
+                  Filtered Total
+                </Typography>
+                <Typography variant="h4" fontWeight="bold">
+                  {formatCurrency(calculateFilteredTotal())}
+                </Typography>
+                <Typography variant="body2">
+                  {searchTerm ? 'Search results total' : 'All entries total'}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Card sx={{ backgroundColor: '#9c27b0', color: 'white' }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Page Total
                 </Typography>
                 <Typography variant="h4" fontWeight="bold">
                   {formatCurrency(calculateCurrentPageTotal())}
                 </Typography>
                 <Typography variant="body2">
-                  {pettyCash.length} entries on this page
+                  {displayData.length} entries on page
                 </Typography>
               </CardContent>
             </Card>
@@ -844,14 +953,10 @@ function PettyCashList() {
         <Paper sx={{ p: 2, mb: 3 }}>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
             <TextField
-              placeholder="Search by vehicle number or job card number..."
+              placeholder="Search by vehicle number, job card number, or description..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  handleSearch();
-                }
-              }}
+              onChange={handleSearchChange}
+              onKeyPress={handleKeyPress}
               sx={{ minWidth: 400 }}
               size="small"
               InputProps={{
@@ -875,7 +980,7 @@ function PettyCashList() {
             />
             <Button
               variant="contained"
-              onClick={handleSearch}
+              onClick={() => applyFiltering(allPettyCash, searchTerm)}
               disabled={loading}
             >
               Search
@@ -883,16 +988,9 @@ function PettyCashList() {
             <Box sx={{ flexGrow: 1 }} />
             {searchTerm && (
               <Typography variant="body2" color="textSecondary">
-                Showing filtered results
+                Found {totalCount} results for "{searchTerm}"
               </Typography>
             )}
-            {/* <Button
-              variant="outlined"
-              startIcon={<DownloadIcon />}
-              disabled={pettyCash.length === 0}
-            >
-              Export
-            </Button> */}
           </Box>
         </Paper>
 
@@ -918,12 +1016,12 @@ function PettyCashList() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {pettyCash.length === 0 ? (
+                {displayData.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                       <ReceiptIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
                       <Typography variant="h6" color="textSecondary">
-                        {searchTerm ? 'No matching petty cash entries found' : 'No petty cash entries found'}
+                        {searchTerm ? `No entries found for "${searchTerm}"` : 'No petty cash entries found'}
                       </Typography>
                       {searchTerm && (
                         <Button
@@ -947,7 +1045,7 @@ function PettyCashList() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  pettyCash.map((entry) => (
+                  displayData.map((entry) => (
                     <TableRow 
                       key={entry.id}
                       hover
@@ -963,7 +1061,7 @@ function PettyCashList() {
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2">
+                        <Typography variant="body2" fontWeight="bold">
                           {entry.vehicle_number || 'N/A'}
                         </Typography>
                       </TableCell>
@@ -1032,7 +1130,7 @@ function PettyCashList() {
           </TableContainer>
           
           {/* Pagination */}
-          {pettyCash.length > 0 && (
+          {displayData.length > 0 && (
             <TablePagination
               rowsPerPageOptions={[5, 10, 25, 50]}
               component="div"
@@ -1050,15 +1148,15 @@ function PettyCashList() {
         </Paper>
 
         {/* Quick Stats */}
-        {pettyCash.length > 0 && (
+        {displayData.length > 0 && (
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="body2" color="textSecondary">
-              Showing {pettyCash.length} of {totalCount} total entries
-              {searchTerm && ' (filtered)'}
+              Showing {displayData.length} of {totalCount} entries
+              {searchTerm && ` (filtered from ${allPettyCash.length} total)`}
             </Typography>
             <Typography variant="body2" color="textSecondary">
               Page Total: {formatCurrency(calculateCurrentPageTotal())} | 
-              Grand Total: {formatCurrency(totalAmount)}
+              Filtered Total: {formatCurrency(calculateFilteredTotal())}
             </Typography>
           </Box>
         )}

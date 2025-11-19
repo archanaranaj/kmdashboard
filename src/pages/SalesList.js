@@ -33,11 +33,12 @@
 //   Refresh as RefreshIcon,
 //   Download as DownloadIcon
 // } from '@mui/icons-material';
-// import { useNavigate } from 'react-router-dom';
+// import { useNavigate, useLocation } from 'react-router-dom';
 // import { useAuth } from '../contexts/AuthContext';
 
 // function SalesList() {
 //   const navigate = useNavigate();
+//   const location = useLocation();
 //   const { token, user } = useAuth();
 //   const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
   
@@ -53,13 +54,43 @@
 //   // Check if current user is from accounts department
 //   const isAccountsDept = user?.role === 'accounts';
 
+//   // Parse URL search parameters on component mount
+//   useEffect(() => {
+//     const searchParams = new URLSearchParams(location.search);
+//     const urlPage = searchParams.get('page');
+//     const urlLimit = searchParams.get('limit');
+//     const urlVehicleNumber = searchParams.get('vehicle_number');
+//     const urlJobCardNumber = searchParams.get('job_card_number');
+
+//     // Set state from URL parameters
+//     if (urlPage) setPage(parseInt(urlPage) - 1); // Convert to 0-based index
+//     if (urlLimit) setRowsPerPage(parseInt(urlLimit));
+//     if (urlVehicleNumber) setSearchTerm(urlVehicleNumber);
+//     if (urlJobCardNumber && !urlVehicleNumber) setSearchTerm(urlJobCardNumber);
+//   }, [location.search]);
+
+//   // Update URL with current search parameters
+//   const updateURL = () => {
+//     const params = new URLSearchParams();
+//     params.append('page', (page + 1).toString());
+//     params.append('limit', rowsPerPage.toString());
+    
+//     if (searchTerm) {
+//       params.append('vehicle_number', searchTerm);
+//       params.append('job_card_number', searchTerm);
+//     }
+
+//     // Update browser URL without page reload
+//     navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+//   };
+
 //   // Fetch sales data from API
 //   const fetchSales = async () => {
 //     try {
 //       setLoading(true);
 //       setError('');
 
-//       // Build query parameters
+//       // Build query parameters for API call
 //       const params = new URLSearchParams({
 //         page: (page + 1).toString(),
 //         limit: rowsPerPage.toString()
@@ -70,6 +101,9 @@
 //         params.append('vehicle_number', searchTerm);
 //         params.append('job_card_number', searchTerm);
 //       }
+
+//       // Update browser URL
+//       updateURL();
 
 //       const response = await fetch(`${BASE_URL}/api/cash/sales?${params.toString()}`, {
 //         method: 'GET',
@@ -117,7 +151,8 @@
 //   const handleClearSearch = () => {
 //     setSearchTerm('');
 //     setPage(0);
-//     // Fetch will be triggered by useEffect due to page change
+//     // Clear URL parameters
+//     navigate(location.pathname, { replace: true });
 //   };
 
 //   // Handle page change
@@ -571,6 +606,7 @@
 
 // export default SalesList;
 
+
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -623,6 +659,7 @@ function SalesList() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [searchTimeout, setSearchTimeout] = useState(null);
 
   // Check if current user is from accounts department
   const isAccountsDept = user?.role === 'accounts';
@@ -632,33 +669,16 @@ function SalesList() {
     const searchParams = new URLSearchParams(location.search);
     const urlPage = searchParams.get('page');
     const urlLimit = searchParams.get('limit');
-    const urlVehicleNumber = searchParams.get('vehicle_number');
-    const urlJobCardNumber = searchParams.get('job_card_number');
+    const urlSearch = searchParams.get('search');
 
     // Set state from URL parameters
-    if (urlPage) setPage(parseInt(urlPage) - 1); // Convert to 0-based index
+    if (urlPage) setPage(parseInt(urlPage) - 1);
     if (urlLimit) setRowsPerPage(parseInt(urlLimit));
-    if (urlVehicleNumber) setSearchTerm(urlVehicleNumber);
-    if (urlJobCardNumber && !urlVehicleNumber) setSearchTerm(urlJobCardNumber);
+    if (urlSearch) setSearchTerm(urlSearch);
   }, [location.search]);
 
-  // Update URL with current search parameters
-  const updateURL = () => {
-    const params = new URLSearchParams();
-    params.append('page', (page + 1).toString());
-    params.append('limit', rowsPerPage.toString());
-    
-    if (searchTerm) {
-      params.append('vehicle_number', searchTerm);
-      params.append('job_card_number', searchTerm);
-    }
-
-    // Update browser URL without page reload
-    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
-  };
-
   // Fetch sales data from API
-  const fetchSales = async () => {
+  const fetchSales = async (searchQuery = '') => {
     try {
       setLoading(true);
       setError('');
@@ -669,14 +689,16 @@ function SalesList() {
         limit: rowsPerPage.toString()
       });
 
-      // Add search parameters if provided
-      if (searchTerm) {
-        params.append('vehicle_number', searchTerm);
-        params.append('job_card_number', searchTerm);
+      // Add search parameter if provided
+      const finalSearchQuery = searchQuery || searchTerm;
+      if (finalSearchQuery.trim()) {
+        params.append('search', finalSearchQuery.trim());
       }
 
       // Update browser URL
-      updateURL();
+      updateURL(finalSearchQuery);
+
+      console.log('🔍 Fetching sales with params:', params.toString());
 
       const response = await fetch(`${BASE_URL}/api/cash/sales?${params.toString()}`, {
         method: 'GET',
@@ -692,7 +714,7 @@ function SalesList() {
       }
 
       const result = await response.json();
-      console.log('✅ Sales list fetched:', result);
+      console.log('✅ Sales API Response:', result);
       
       if (result.status && result.data) {
         setSales(result.data.sales_cash || []);
@@ -705,17 +727,59 @@ function SalesList() {
     } catch (error) {
       console.error('❌ Error fetching sales:', error);
       setError(error.message || 'Failed to fetch sales data');
+      // Clear data on error
+      setSales([]);
+      setTotalCount(0);
+      setTotalAmount(0);
     } finally {
       setLoading(false);
     }
   };
 
+  // Update URL with current search parameters
+  const updateURL = (currentSearchTerm = '') => {
+    const params = new URLSearchParams();
+    params.append('page', (page + 1).toString());
+    params.append('limit', rowsPerPage.toString());
+    
+    const searchValue = currentSearchTerm || searchTerm;
+    if (searchValue.trim()) {
+      params.append('search', searchValue.trim());
+    }
+
+    // Update browser URL without page reload
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+  };
+
+  // Effect to fetch sales when page or rowsPerPage changes
   useEffect(() => {
     fetchSales();
-  }, [page, rowsPerPage]); // Refetch when page or rowsPerPage changes
+  }, [page, rowsPerPage]);
 
-  // Handle search - reset to first page and fetch
+  // Handle search input change with debouncing
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    // Clear previous timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    // Set new timeout for debounced search
+    const newTimeout = setTimeout(() => {
+      setPage(0); // Reset to first page when searching
+      fetchSales(value);
+    }, 500); // 500ms debounce delay
+
+    setSearchTimeout(newTimeout);
+  };
+
+  // Handle manual search button click
   const handleSearch = () => {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
     setPage(0);
     fetchSales();
   };
@@ -724,8 +788,12 @@ function SalesList() {
   const handleClearSearch = () => {
     setSearchTerm('');
     setPage(0);
-    // Clear URL parameters
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    // Clear URL parameters and fetch without search
     navigate(location.pathname, { replace: true });
+    fetchSales('');
   };
 
   // Handle page change
@@ -736,7 +804,7 @@ function SalesList() {
   // Handle rows per page change
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Reset to first page when changing rows per page
+    setPage(0);
   };
 
   const formatDate = (dateString) => {
@@ -812,7 +880,16 @@ function SalesList() {
     return totals;
   };
 
-  if (loading) {
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+    };
+  }, [searchTimeout]);
+
+  if (loading && sales.length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <CircularProgress size={60} />
@@ -843,7 +920,8 @@ function SalesList() {
             <Button
               variant="outlined"
               startIcon={<RefreshIcon />}
-              onClick={fetchSales}
+              onClick={() => fetchSales()}
+              disabled={loading}
             >
               Refresh
             </Button>
@@ -947,9 +1025,9 @@ function SalesList() {
         <Paper sx={{ p: 2, mb: 3 }}>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
             <TextField
-              placeholder="Search by vehicle number or job card number..."
+              placeholder="Search by vehicle number, job card number, transaction number..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
                   handleSearch();
@@ -981,21 +1059,14 @@ function SalesList() {
               onClick={handleSearch}
               disabled={loading}
             >
-              Search
+              {loading ? 'Searching...' : 'Search'}
             </Button>
             <Box sx={{ flexGrow: 1 }} />
             {searchTerm && (
               <Typography variant="body2" color="textSecondary">
-                Showing filtered results
+                Showing results for: "{searchTerm}"
               </Typography>
             )}
-            {/* <Button
-              variant="outlined"
-              startIcon={<DownloadIcon />}
-              disabled={sales.length === 0}
-            >
-              Export
-            </Button> */}
           </Box>
         </Paper>
 
@@ -1027,7 +1098,7 @@ function SalesList() {
                     <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                       <SalesIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
                       <Typography variant="h6" color="textSecondary">
-                        {searchTerm ? 'No matching sales entries found' : 'No sales entries found'}
+                        {searchTerm ? `No sales entries found for "${searchTerm}"` : 'No sales entries found'}
                       </Typography>
                       {searchTerm && (
                         <Button
