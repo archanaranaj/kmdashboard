@@ -829,7 +829,7 @@ function SalesList() {
   };
 
   const handleViewDetails = (id) => {
-    navigate(`/sales/${id}`);
+    navigate(`/petty-sales/${id}`);
   };
 
   const handleEdit = (id) => {
@@ -940,7 +940,7 @@ function SalesList() {
         {/* Summary Cards */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid item xs={12} md={3}>
-            <Card sx={{ backgroundColor: '#49a3f1', color: 'white' }}>
+            <Card sx={{ backgroundColor: '#e3f2fd', color: 'blue' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Total Entries
@@ -955,7 +955,7 @@ function SalesList() {
             </Card>
           </Grid>
           <Grid item xs={12} md={3}>
-            <Card sx={{ backgroundColor: '#4caf50', color: 'white' }}>
+            <Card sx={{ backgroundColor: '#e8f5e8', color: 'green' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Total Sales
@@ -970,7 +970,7 @@ function SalesList() {
             </Card>
           </Grid>
           <Grid item xs={12} md={3}>
-            <Card sx={{ backgroundColor: '#ff9800', color: 'white' }}>
+            <Card sx={{ backgroundColor: '#fff3e0', color: 'orange' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Current Page
@@ -985,7 +985,7 @@ function SalesList() {
             </Card>
           </Grid>
           <Grid item xs={12} md={3}>
-            <Card sx={{ backgroundColor: '#9c27b0', color: 'white' }}>
+            <Card sx={{ backgroundColor: '#f3e5f5', color: 'purple' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Payment Modes

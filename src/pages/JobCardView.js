@@ -861,7 +861,7 @@ const fetchGatePassEntries = async () => {
                 <Grid container spacing={4}>
                   {/* Vehicle Information */}
                   <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 3, backgroundColor: '#49a3f1', color: 'white' }}>
+                    <Paper sx={{ p: 3, backgroundColor: '#e3f2fd', color: '#1565c0' }}>
                       <Typography variant="h6" gutterBottom fontWeight="bold">
                         🚗 Vehicle Information
                       </Typography>
@@ -892,7 +892,7 @@ const fetchGatePassEntries = async () => {
 
                   {/* Customer Information */}
                   <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 3, backgroundColor: '#ee358bff', color: 'white' }}>
+                    <Paper sx={{ p: 3, backgroundColor: '#fce4ec', color: '#ad1457' }}>
                       <Typography variant="h6" gutterBottom fontWeight="bold">
                         👤 Customer Information
                       </Typography>
@@ -974,8 +974,8 @@ const fetchGatePassEntries = async () => {
                 </Grid>
 
                 {/* Job Description */}
-                <Paper sx={{ p: 3, mt: 3, backgroundColor: '#f1d32bff' }}>
-                  <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">
+                <Paper sx={{ p: 3, mt: 3, backgroundColor: '#fff9c4' }}>
+                  <Typography variant="h6" gutterBottom color="#f57f17" fontWeight="bold">
                     📝 Job Description
                   </Typography>
                   <Typography variant="body1" sx={{ mt: 2, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
@@ -1275,7 +1275,7 @@ const fetchGatePassEntries = async () => {
                     Edit Job Card
                   </Button>
                   
-                  {/* Add Petty Cash Button */}
+                  {/* Add Petty Cash Button
                   <Button 
                     variant="contained" 
                     color="success"
@@ -1286,9 +1286,9 @@ const fetchGatePassEntries = async () => {
                     fullWidth
                   >
                     {jobCard.job_card_number ? 'Add Petty Cash' : 'Assign Number First'}
-                  </Button>
+                  </Button> */}
 
-                  {/* Add Sales Button */}
+                  {/* Add Sales Button
                   <Button 
                     variant="contained" 
                     color="secondary"
@@ -1299,7 +1299,7 @@ const fetchGatePassEntries = async () => {
                     fullWidth
                   >
                     {jobCard.job_card_number ? 'Add Sales Entry' : 'Assign Number First'}
-                  </Button>
+                  </Button> */}
 
                   {/* Create Gate Pass Button */}
                   <Button 

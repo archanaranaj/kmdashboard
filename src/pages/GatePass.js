@@ -54,42 +54,83 @@ function GatePass() {
   const [submitting, setSubmitting] = useState(false);
 
   // Fetch all gate passes from API
-  const fetchGatePasses = async () => {
-    try {
-      setLoading(true);
-      setError('');
+  // const fetchGatePasses = async () => {
+  //   try {
+  //     setLoading(true);
+  //     setError('');
 
-      console.log('🔍 Fetching gate passes...');
+  //     console.log('🔍 Fetching gate passes...');
       
-      const response = await fetch(`${BASE_URL}/api/gate-passes`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+  //     const response = await fetch(`${BASE_URL}/api/gate-passes`, {
+  //       method: 'GET',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Accept': 'application/json',
+  //         'Authorization': `Bearer ${token}`,
+  //       },
+  //     });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch gate passes: ${response.status}`);
-      }
+  //     if (!response.ok) {
+  //       throw new Error(`Failed to fetch gate passes: ${response.status}`);
+  //     }
 
-      const result = await response.json();
-      console.log('✅ Gate passes fetched:', result);
+  //     const result = await response.json();
+  //     console.log('✅ Gate passes fetched:', result);
       
-      if (result.status && Array.isArray(result.data)) {
-        setGatePasses(result.data);
-      } else {
-        throw new Error('Invalid response format from gate passes API');
-      }
+  //     if (result.status && Array.isArray(result.data)) {
+  //       setGatePasses(result.data);
+  //     } else {
+  //       throw new Error('Invalid response format from gate passes API');
+  //     }
       
-    } catch (error) {
-      console.error('❌ Error fetching gate passes:', error);
-      setError(error.message || 'Failed to fetch gate passes');
-    } finally {
-      setLoading(false);
+  //   } catch (error) {
+  //     console.error('❌ Error fetching gate passes:', error);
+  //     setError(error.message || 'Failed to fetch gate passes');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // Fetch all gate passes from API
+const fetchGatePasses = async () => {
+  try {
+    setLoading(true);
+    setError('');
+
+    console.log('🔍 Fetching gate passes...');
+    
+    const response = await fetch(`${BASE_URL}/api/gate-passes`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch gate passes: ${response.status}`);
     }
-  };
+
+    const result = await response.json();
+    console.log('✅ Gate passes fetched:', result);
+    
+    if (result.status && result.data && Array.isArray(result.data.gate_passes)) {
+      setGatePasses(result.data.gate_passes);
+    } else if (result.status && Array.isArray(result.data)) {
+      // Fallback: if data is directly an array
+      setGatePasses(result.data);
+    } else {
+      throw new Error('Invalid response format from gate passes API');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error fetching gate passes:', error);
+    setError(error.message || 'Failed to fetch gate passes');
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchGatePasses();
@@ -101,56 +142,108 @@ function GatePass() {
   const [vehiclesLoading, setVehiclesLoading] = useState(false);
 
   // Fetch eligible vehicles (job cards that are completed and don't have gate passes)
-  const fetchEligibleVehicles = async () => {
-    try {
-      setVehiclesLoading(true);
+  // const fetchEligibleVehicles = async () => {
+  //   try {
+  //     setVehiclesLoading(true);
       
-      // First, fetch job cards that are completed
-      const jobCardsResponse = await fetch(`${BASE_URL}/api/job-cards?status=completed`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+  //     // First, fetch job cards that are completed
+  //     const jobCardsResponse = await fetch(`${BASE_URL}/api/job-cards?status=completed`, {
+  //       method: 'GET',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Accept': 'application/json',
+  //         'Authorization': `Bearer ${token}`,
+  //       },
+  //     });
 
-      if (jobCardsResponse.ok) {
-        const jobCardsResult = await jobCardsResponse.json();
+  //     if (jobCardsResponse.ok) {
+  //       const jobCardsResult = await jobCardsResponse.json();
         
-        if (jobCardsResult.status && Array.isArray(jobCardsResult.data)) {
-          // Filter job cards that don't have gate passes
-          const jobCardsWithoutGatePass = jobCardsResult.data.filter(jobCard => {
-            // Check if this job card already has a gate pass
-            return !gatePasses.some(gatePass => gatePass.job_card_id === jobCard.id);
-          });
+  //       if (jobCardsResult.status && Array.isArray(jobCardsResult.data)) {
+  //         // Filter job cards that don't have gate passes
+  //         const jobCardsWithoutGatePass = jobCardsResult.data.filter(jobCard => {
+  //           // Check if this job card already has a gate pass
+  //           return !gatePasses.some(gatePass => gatePass.job_card_id === jobCard.id);
+  //         });
 
-          // Transform job cards to vehicle format
-          const vehiclesData = jobCardsWithoutGatePass.map(jobCard => ({
-            id: jobCard.id,
-            vehicleNumber: jobCard.vehicle_number,
-            customerName: jobCard.customer_name,
-            carMake: jobCard.car_make,
-            carModel: jobCard.car_model,
-            carYear: jobCard.car_year,
-            chassisNumber: jobCard.chassis_number,
-            jobCardId: jobCard.id,
-            jobCompleted: true,
-            gatePassCreated: false
-          }));
+  //         // Transform job cards to vehicle format
+  //         const vehiclesData = jobCardsWithoutGatePass.map(jobCard => ({
+  //           id: jobCard.id,
+  //           vehicleNumber: jobCard.vehicle_number,
+  //           customerName: jobCard.customer_name,
+  //           carMake: jobCard.car_make,
+  //           carModel: jobCard.car_model,
+  //           carYear: jobCard.car_year,
+  //           chassisNumber: jobCard.chassis_number,
+  //           jobCardId: jobCard.id,
+  //           jobCompleted: true,
+  //           gatePassCreated: false
+  //         }));
 
-          setEligibleVehicles(vehiclesData);
-        }
+  //         setEligibleVehicles(vehiclesData);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error('❌ Error fetching eligible vehicles:', error);
+  //     // If API fails, use empty array
+  //     setEligibleVehicles([]);
+  //   } finally {
+  //     setVehiclesLoading(false);
+  //   }
+  // };
+// Fetch eligible vehicles (job cards that are completed and don't have gate passes)
+const fetchEligibleVehicles = async () => {
+  try {
+    setVehiclesLoading(true);
+    
+    // First, fetch job cards that are completed
+    const jobCardsResponse = await fetch(`${BASE_URL}/api/job-cards?status=completed`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (jobCardsResponse.ok) {
+      const jobCardsResult = await jobCardsResponse.json();
+      
+      // Handle both response structures
+      const jobCardsData = jobCardsResult.data?.job_cards || jobCardsResult.data || [];
+      
+      if (jobCardsResult.status && Array.isArray(jobCardsData)) {
+        // Filter job cards that don't have gate passes
+        const jobCardsWithoutGatePass = jobCardsData.filter(jobCard => {
+          // Check if this job card already has a gate pass
+          return !gatePasses.some(gatePass => gatePass.job_card_id === jobCard.id);
+        });
+
+        // Transform job cards to vehicle format
+        const vehiclesData = jobCardsWithoutGatePass.map(jobCard => ({
+          id: jobCard.id,
+          vehicleNumber: jobCard.vehicle_number,
+          customerName: jobCard.customer_name,
+          carMake: jobCard.car_make,
+          carModel: jobCard.car_model,
+          carYear: jobCard.car_year,
+          chassisNumber: jobCard.chassis_number,
+          jobCardId: jobCard.id,
+          jobCompleted: true,
+          gatePassCreated: false
+        }));
+
+        setEligibleVehicles(vehiclesData);
       }
-    } catch (error) {
-      console.error('❌ Error fetching eligible vehicles:', error);
-      // If API fails, use empty array
-      setEligibleVehicles([]);
-    } finally {
-      setVehiclesLoading(false);
     }
-  };
-
+  } catch (error) {
+    console.error('❌ Error fetching eligible vehicles:', error);
+    // If API fails, use empty array
+    setEligibleVehicles([]);
+  } finally {
+    setVehiclesLoading(false);
+  }
+};
   useEffect(() => {
     if (gatePasses.length > 0) {
       fetchEligibleVehicles();
@@ -197,56 +290,104 @@ function GatePass() {
     }));
   };
 
-  const handleCreateGatePass = async () => {
-    try {
-      setSubmitting(true);
+  // const handleCreateGatePass = async () => {
+  //   try {
+  //     setSubmitting(true);
       
-      const vehicle = eligibleVehicles.find(v => v.vehicleNumber === formData.vehicleNumber);
-      if (!vehicle) {
-        throw new Error('Selected vehicle not found');
-      }
+  //     const vehicle = eligibleVehicles.find(v => v.vehicleNumber === formData.vehicleNumber);
+  //     if (!vehicle) {
+  //       throw new Error('Selected vehicle not found');
+  //     }
 
-      // Create gate pass via API
-      const response = await fetch(`${BASE_URL}/api/gate-passes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          vehicle_number: formData.vehicleNumber,
-          job_card_id: vehicle.jobCardId
-        }),
-      });
+  //     // Create gate pass via API
+  //     const response = await fetch(`${BASE_URL}/api/gate-passes`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Accept': 'application/json',
+  //         'Authorization': `Bearer ${token}`,
+  //       },
+  //       body: JSON.stringify({
+  //         vehicle_number: formData.vehicleNumber,
+  //         job_card_id: vehicle.jobCardId
+  //       }),
+  //     });
 
-      const result = await response.json();
+  //     const result = await response.json();
 
-      if (!response.ok) {
-        if (response.status === 400) {
-          throw new Error(result.message || 'Gate pass already exists for this job card');
-        }
-        throw new Error(`Failed to create gate pass: ${response.status}`);
-      }
+  //     if (!response.ok) {
+  //       if (response.status === 400) {
+  //         throw new Error(result.message || 'Gate pass already exists for this job card');
+  //       }
+  //       throw new Error(`Failed to create gate pass: ${response.status}`);
+  //     }
 
-      console.log('✅ Gate pass created:', result);
+  //     console.log('✅ Gate pass created:', result);
       
-      // Show success message
-      setSuccessMessage('Gate pass created successfully!');
+  //     // Show success message
+  //     setSuccessMessage('Gate pass created successfully!');
       
-      // Refresh the gate passes list
-      fetchGatePasses();
+  //     // Refresh the gate passes list
+  //     fetchGatePasses();
       
-      handleCloseCreateDialog();
+  //     handleCloseCreateDialog();
       
-    } catch (error) {
-      console.error('❌ Error creating gate pass:', error);
-      setError(error.message || 'Failed to create gate pass');
-    } finally {
-      setSubmitting(false);
+  //   } catch (error) {
+  //     console.error('❌ Error creating gate pass:', error);
+  //     setError(error.message || 'Failed to create gate pass');
+  //   } finally {
+  //     setSubmitting(false);
+  //   }
+  // };
+const handleCreateGatePass = async () => {
+  try {
+    setSubmitting(true);
+    
+    const vehicle = eligibleVehicles.find(v => v.vehicleNumber === formData.vehicleNumber);
+    if (!vehicle) {
+      throw new Error('Selected vehicle not found');
     }
-  };
 
+    // Create gate pass via API
+    const response = await fetch(`${BASE_URL}/api/gate-passes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        vehicle_number: formData.vehicleNumber,
+        job_card_id: vehicle.jobCardId
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 400) {
+        throw new Error(result.message || 'Gate pass already exists for this job card');
+      }
+      throw new Error(`Failed to create gate pass: ${response.status}`);
+    }
+
+    console.log('✅ Gate pass created:', result);
+    
+    // Show success message
+    setSuccessMessage('Gate pass created successfully!');
+    
+    // Refresh the gate passes list
+    fetchGatePasses();
+    
+    handleCloseCreateDialog();
+    
+  } catch (error) {
+    console.error('❌ Error creating gate pass:', error);
+    setError(error.message || 'Failed to create gate pass');
+  } finally {
+    setSubmitting(false);
+  }
+};
   const handlePrintGatePass = (gatePass) => {
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
@@ -413,7 +554,7 @@ function GatePass() {
 
       <Grid container spacing={3}>
         {/* Eligible Vehicles Card */}
-        <Grid item xs={12} md={6}>
+        {/* <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom color="primary">
@@ -470,10 +611,10 @@ function GatePass() {
               )}
             </CardContent>
           </Card>
-        </Grid>
+        </Grid> */}
 
         {/* Gate Pass Statistics */}
-        <Grid item xs={12} md={6}>
+        {/* <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom color="primary">
@@ -524,7 +665,7 @@ function GatePass() {
               </Grid>
             </CardContent>
           </Card>
-        </Grid>
+        </Grid> */}
 
         {/* Gate Passes History */}
         <Grid item xs={12}>

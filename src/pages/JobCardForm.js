@@ -1,3 +1,5 @@
+
+
 // import React, { useState, useEffect } from 'react';
 // import {
 //   Card,
@@ -19,7 +21,7 @@
 
 // const carMakes = ['Toyota', 'Honda', 'Ford', 'BMW', 'Mercedes', 'Audi', 'Hyundai', 'Kia', 'Nissan', 'Volkswagen'];
 // const insuranceCompanies = ['ABC Insurance', 'XYZ Insurance', 'Premium Insure', 'SecureCover', 'SafeGuard', 'No Insurance'];
-// const statusOptions = ['active', 'pending', 'completed', 'in_progress', 'delivered'];
+// const statusOptions = ['Active', 'Assigned', 'Completed'];
 
 // function JobCardForm() {
 //   const navigate = useNavigate();
@@ -49,7 +51,7 @@
 //     job_description: '',
 //     promised_delivery_date: '',
 //     number_plate_id: '',
-//     status: 'active'
+//     status: 'Active'
 //   });
 
 //   const [availableNumberPlates, setAvailableNumberPlates] = useState([]);
@@ -174,7 +176,7 @@
 //           job_description: jobCard.job_description || '',
 //           promised_delivery_date: jobCard.promised_delivery_date || '',
 //           number_plate_id: jobCard.number_plate_id || '',
-//           status: jobCard.status || 'active'
+//           status: jobCard.status || 'Active'
 //         });
         
 //         setDataLoaded(true);
@@ -243,7 +245,7 @@
 //         requestBody = {
 //           chassis_number: formData.chassis_number?.trim() || '',
 //           customer_name: formData.customer_name.trim(),
-//           status: formData.status || 'active'
+//           status: formData.status || 'Active'
 //         };
 //         console.log('🔄 UPDATE mode - limited fields:', requestBody);
 //       } else {
@@ -261,7 +263,7 @@
 //           insurance_name: formData.insurance_name?.trim() || '',
 //           job_description: formData.job_description.trim(),
 //           promised_delivery_date: formData.promised_delivery_date || formData.date,
-//           status: formData.status || 'active'
+//           // status: formData.status || 'Active'
 //         };
 
 //         // Only include number_plate_id if it's a valid number and exists
@@ -633,7 +635,7 @@
 //                   />
 //                 </Grid>
 
-//                 <Grid item xs={12} md={6}>
+//                 {/* <Grid item xs={12} md={6}>
 //                   <TextField
 //                     label="Status"
 //                     name="status"
@@ -646,11 +648,11 @@
 //                   >
 //                     {statusOptions.map(status => (
 //                       <MenuItem key={status} value={status}>
-//                         {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
+//                         {status}
 //                       </MenuItem>
 //                     ))}
 //                   </TextField>
-//                 </Grid>
+//                 </Grid> */}
 
 //                 {!isEditing && (
 //                   <Grid item xs={12} md={6}>
@@ -728,6 +730,7 @@
 // }
 
 // export default JobCardForm;
+
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -830,6 +833,8 @@ function JobCardForm() {
   // Fetch available number plates from API
   const fetchAvailableNumberPlates = async () => {
     try {
+      console.log('🔍 Fetching available number plates...');
+      
       const response = await fetch(`${BASE_URL}/api/number-plates`, {
         method: 'GET',
         headers: {
@@ -838,30 +843,95 @@ function JobCardForm() {
         },
       });
 
+      console.log('📥 Number plates response status:', response.status);
+      
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ Number plates fetched:', result);
+        console.log('✅ Number plates API response:', result);
         
-        // Handle different response structures
+        // Handle the complex API response structure
         let plates = [];
-        if (Array.isArray(result)) {
-          plates = result;
-        } else if (Array.isArray(result.data)) {
-          plates = result.data;
-        } else if (result.data && typeof result.data === 'object') {
-          plates = Object.values(result.data);
-        } else {
-          plates = [];
+        
+        if (result.status && result.data) {
+          // The data object contains mixed types - we need to find the actual plates array
+          const data = result.data;
+          
+          // Strategy 1: Look for an array in the data object
+          for (const key in data) {
+            if (Array.isArray(data[key])) {
+              console.log(`📁 Found array in key "${key}":`, data[key]);
+              plates = data[key];
+              break;
+            }
+          }
+          
+          // Strategy 2: If no array found, try to extract all objects that look like plates
+          if (plates.length === 0) {
+            plates = Object.values(data).filter(item => 
+              item && typeof item === 'object' && item.id && item.plate_number
+            );
+          }
+          
+          // Strategy 3: If still no plates, check if data itself is the array we need
+          if (plates.length === 0 && Array.isArray(data)) {
+            plates = data;
+          }
         }
         
+        console.log('📋 Processed number plates:', plates);
         setAvailableNumberPlates(plates);
+        
+        // Auto-select number plate if we have plateData
+        if (plateData && plates.length > 0) {
+          autoSelectNumberPlate(plates);
+        }
       } else {
-        console.log('⚠️ No number plates endpoint or no plates available');
+        console.log('⚠️ Failed to fetch number plates:', response.status);
         setAvailableNumberPlates([]);
       }
     } catch (error) {
-      console.log('⚠️ Error fetching number plates:', error);
+      console.log('❌ Error fetching number plates:', error);
       setAvailableNumberPlates([]);
+    }
+  };
+
+  // Auto-select number plate based on plateData
+  const autoSelectNumberPlate = (plates) => {
+    if (!plateData || !plateData.plateNumber) {
+      console.log('❌ No plateData available for auto-selection');
+      return;
+    }
+    
+    const scannedPlateNumber = plateData.plateNumber.trim().toLowerCase();
+    console.log('🎯 Looking for matching number plate for:', scannedPlateNumber);
+    console.log('📋 Available plates:', plates);
+    
+    // Try to find exact match in available plates
+    const matchingPlate = plates.find(plate => {
+      if (!plate.plate_number) return false;
+      const availablePlateNumber = plate.plate_number.trim().toLowerCase();
+      return availablePlateNumber === scannedPlateNumber;
+    });
+    
+    if (matchingPlate) {
+      console.log('✅ Found matching number plate:', matchingPlate);
+      setFormData(prev => ({
+        ...prev,
+        number_plate_id: matchingPlate.id.toString(),
+        vehicle_number: plateData.plateNumber || '',
+        car_make: plateData.vehicleDetails?.brand || matchingPlate.vehicle_details?.brand || '',
+        car_model: plateData.vehicleDetails?.type || matchingPlate.vehicle_details?.type || '',
+      }));
+    } else {
+      console.log('❌ No matching number plate found for:', scannedPlateNumber);
+      // Still set the vehicle number from plateData but don't set number_plate_id
+      setFormData(prev => ({
+        ...prev,
+        vehicle_number: plateData.plateNumber || '',
+        car_make: plateData.vehicleDetails?.brand || '',
+        car_model: plateData.vehicleDetails?.type || '',
+        number_plate_id: '' // Ensure it's empty if no match
+      }));
     }
   };
 
@@ -992,7 +1062,7 @@ function JobCardForm() {
           insurance_name: formData.insurance_name?.trim() || '',
           job_description: formData.job_description.trim(),
           promised_delivery_date: formData.promised_delivery_date || formData.date,
-          status: formData.status || 'Active'
+          // status: formData.status || 'Active'
         };
 
         // Only include number_plate_id if it's a valid number and exists
@@ -1176,7 +1246,7 @@ function JobCardForm() {
 
                 {/* Vehicle Information */}
                 <Grid item xs={12}>
-                  <Paper sx={{ p: 3, backgroundColor: '#49a3f1', color: 'white' }}>
+                  <Paper sx={{ p: 3, backgroundColor: '#e3f2fd', color: '#1565c0' }}>
                     <Typography variant="h6" gutterBottom fontWeight="bold">
                       🚗 Vehicle Information
                     </Typography>
@@ -1273,7 +1343,7 @@ function JobCardForm() {
 
                 {/* Customer Information */}
                 <Grid item xs={12}>
-                  <Paper sx={{ p: 3, backgroundColor: '#ee358bff', color: 'white', mt: 2 }}>
+                  <Paper sx={{ p: 3, backgroundColor: '#fce4ec', color: '#ad1457', mt: 2 }}>
                     <Typography variant="h6" gutterBottom fontWeight="bold">
                       👤 Customer Information
                     </Typography>
@@ -1342,7 +1412,7 @@ function JobCardForm() {
 
                 {/* Service Information */}
                 <Grid item xs={12}>
-                  <Paper sx={{ p: 3, backgroundColor: '#f1d32bff', color: 'white', mt: 2 }}>
+                  <Paper sx={{ p: 3, backgroundColor: '#fff9c4', color: '#f57f17', mt: 2 }}>
                     <Typography variant="h6" gutterBottom fontWeight="bold">
                       🛠️ Service Information
                     </Typography>
@@ -1364,24 +1434,7 @@ function JobCardForm() {
                   />
                 </Grid>
 
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Status"
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    select
-                    fullWidth
-                    variant="outlined"
-                    disabled={loading || !isServiceAdvisor}
-                  >
-                    {statusOptions.map(status => (
-                      <MenuItem key={status} value={status}>
-                        {status}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
+               
 
                 {!isEditing && (
                   <Grid item xs={12} md={6}>
@@ -1407,6 +1460,8 @@ function JobCardForm() {
                         </MenuItem>
                       ))}
                     </TextField>
+                    
+                   
                   </Grid>
                 )}
 

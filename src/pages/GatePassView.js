@@ -269,7 +269,7 @@ function GatePassView() {
                 <Grid container spacing={4}>
                   {/* Vehicle Information */}
                   <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 3, backgroundColor: 'primary.light', color: 'white' }}>
+                    <Paper sx={{ p: 3, backgroundColor: '#e3f2fd', color: '#1565c0' }}>
                       <Typography variant="h6" gutterBottom fontWeight="bold">
                         🚗 Vehicle Information
                       </Typography>
@@ -292,7 +292,7 @@ function GatePassView() {
 
                   {/* Gate Pass Details */}
                   <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 3, backgroundColor: 'secondary.light', color: 'white' }}>
+                    <Paper sx={{ p: 3, backgroundColor: '#fce4ec', color: '#ad1457' }}>
                       <Typography variant="h6" gutterBottom fontWeight="bold">
                         📄 Gate Pass Details
                       </Typography>
@@ -348,7 +348,7 @@ function GatePassView() {
                 </Paper>
 
                 {/* Important Notice */}
-                <Paper sx={{ p: 3, mt: 3, backgroundColor: 'info.light', color: 'white' }}>
+                <Paper sx={{ p: 3, mt: 3, backgroundColor: '#e3f2fd', color: '#1565c0' }}>
                   <Typography variant="h6" gutterBottom fontWeight="bold">
                     ⚠️ Important Notice
                   </Typography>
