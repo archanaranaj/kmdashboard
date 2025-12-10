@@ -1,5 +1,3 @@
-
-
 // import React, { useState, useEffect } from 'react';
 // import {
 //   Card,
@@ -101,6 +99,8 @@
 //   // Fetch available number plates from API
 //   const fetchAvailableNumberPlates = async () => {
 //     try {
+//       console.log('🔍 Fetching available number plates...');
+      
 //       const response = await fetch(`${BASE_URL}/api/number-plates`, {
 //         method: 'GET',
 //         headers: {
@@ -109,30 +109,95 @@
 //         },
 //       });
 
+//       console.log('📥 Number plates response status:', response.status);
+      
 //       if (response.ok) {
 //         const result = await response.json();
-//         console.log('✅ Number plates fetched:', result);
+//         console.log('✅ Number plates API response:', result);
         
-//         // Handle different response structures
+//         // Handle the complex API response structure
 //         let plates = [];
-//         if (Array.isArray(result)) {
-//           plates = result;
-//         } else if (Array.isArray(result.data)) {
-//           plates = result.data;
-//         } else if (result.data && typeof result.data === 'object') {
-//           plates = Object.values(result.data);
-//         } else {
-//           plates = [];
+        
+//         if (result.status && result.data) {
+//           // The data object contains mixed types - we need to find the actual plates array
+//           const data = result.data;
+          
+//           // Strategy 1: Look for an array in the data object
+//           for (const key in data) {
+//             if (Array.isArray(data[key])) {
+//               console.log(`📁 Found array in key "${key}":`, data[key]);
+//               plates = data[key];
+//               break;
+//             }
+//           }
+          
+//           // Strategy 2: If no array found, try to extract all objects that look like plates
+//           if (plates.length === 0) {
+//             plates = Object.values(data).filter(item => 
+//               item && typeof item === 'object' && item.id && item.plate_number
+//             );
+//           }
+          
+//           // Strategy 3: If still no plates, check if data itself is the array we need
+//           if (plates.length === 0 && Array.isArray(data)) {
+//             plates = data;
+//           }
 //         }
         
+//         console.log('📋 Processed number plates:', plates);
 //         setAvailableNumberPlates(plates);
+        
+//         // Auto-select number plate if we have plateData
+//         if (plateData && plates.length > 0) {
+//           autoSelectNumberPlate(plates);
+//         }
 //       } else {
-//         console.log('⚠️ No number plates endpoint or no plates available');
+//         console.log('⚠️ Failed to fetch number plates:', response.status);
 //         setAvailableNumberPlates([]);
 //       }
 //     } catch (error) {
-//       console.log('⚠️ Error fetching number plates:', error);
+//       console.log('❌ Error fetching number plates:', error);
 //       setAvailableNumberPlates([]);
+//     }
+//   };
+
+//   // Auto-select number plate based on plateData
+//   const autoSelectNumberPlate = (plates) => {
+//     if (!plateData || !plateData.plateNumber) {
+//       console.log('❌ No plateData available for auto-selection');
+//       return;
+//     }
+    
+//     const scannedPlateNumber = plateData.plateNumber.trim().toLowerCase();
+//     console.log('🎯 Looking for matching number plate for:', scannedPlateNumber);
+//     console.log('📋 Available plates:', plates);
+    
+//     // Try to find exact match in available plates
+//     const matchingPlate = plates.find(plate => {
+//       if (!plate.plate_number) return false;
+//       const availablePlateNumber = plate.plate_number.trim().toLowerCase();
+//       return availablePlateNumber === scannedPlateNumber;
+//     });
+    
+//     if (matchingPlate) {
+//       console.log('✅ Found matching number plate:', matchingPlate);
+//       setFormData(prev => ({
+//         ...prev,
+//         number_plate_id: matchingPlate.id.toString(),
+//         vehicle_number: plateData.plateNumber || '',
+//         car_make: plateData.vehicleDetails?.brand || matchingPlate.vehicle_details?.brand || '',
+//         car_model: plateData.vehicleDetails?.type || matchingPlate.vehicle_details?.type || '',
+//       }));
+//     } else {
+//       console.log('❌ No matching number plate found for:', scannedPlateNumber);
+//       // Still set the vehicle number from plateData but don't set number_plate_id
+//       setFormData(prev => ({
+//         ...prev,
+//         vehicle_number: plateData.plateNumber || '',
+//         car_make: plateData.vehicleDetails?.brand || '',
+//         car_model: plateData.vehicleDetails?.type || '',
+//         number_plate_id: '' // Ensure it's empty if no match
+//       }));
 //     }
 //   };
 
@@ -447,7 +512,7 @@
 
 //                 {/* Vehicle Information */}
 //                 <Grid item xs={12}>
-//                   <Paper sx={{ p: 3, backgroundColor: '#49a3f1', color: 'white' }}>
+//                   <Paper sx={{ p: 3, backgroundColor: '#e3f2fd', color: '#1565c0' }}>
 //                     <Typography variant="h6" gutterBottom fontWeight="bold">
 //                       🚗 Vehicle Information
 //                     </Typography>
@@ -544,7 +609,7 @@
 
 //                 {/* Customer Information */}
 //                 <Grid item xs={12}>
-//                   <Paper sx={{ p: 3, backgroundColor: '#ee358bff', color: 'white', mt: 2 }}>
+//                   <Paper sx={{ p: 3, backgroundColor: '#fce4ec', color: '#ad1457', mt: 2 }}>
 //                     <Typography variant="h6" gutterBottom fontWeight="bold">
 //                       👤 Customer Information
 //                     </Typography>
@@ -613,7 +678,7 @@
 
 //                 {/* Service Information */}
 //                 <Grid item xs={12}>
-//                   <Paper sx={{ p: 3, backgroundColor: '#f1d32bff', color: 'white', mt: 2 }}>
+//                   <Paper sx={{ p: 3, backgroundColor: '#fff9c4', color: '#f57f17', mt: 2 }}>
 //                     <Typography variant="h6" gutterBottom fontWeight="bold">
 //                       🛠️ Service Information
 //                     </Typography>
@@ -635,24 +700,7 @@
 //                   />
 //                 </Grid>
 
-//                 {/* <Grid item xs={12} md={6}>
-//                   <TextField
-//                     label="Status"
-//                     name="status"
-//                     value={formData.status}
-//                     onChange={handleInputChange}
-//                     select
-//                     fullWidth
-//                     variant="outlined"
-//                     disabled={loading || !isServiceAdvisor}
-//                   >
-//                     {statusOptions.map(status => (
-//                       <MenuItem key={status} value={status}>
-//                         {status}
-//                       </MenuItem>
-//                     ))}
-//                   </TextField>
-//                 </Grid> */}
+               
 
 //                 {!isEditing && (
 //                   <Grid item xs={12} md={6}>
@@ -678,6 +726,8 @@
 //                         </MenuItem>
 //                       ))}
 //                     </TextField>
+                    
+                   
 //                   </Grid>
 //                 )}
 
@@ -732,6 +782,8 @@
 // export default JobCardForm;
 
 
+
+
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -754,6 +806,9 @@ import { useAuth } from '../contexts/AuthContext';
 const carMakes = ['Toyota', 'Honda', 'Ford', 'BMW', 'Mercedes', 'Audi', 'Hyundai', 'Kia', 'Nissan', 'Volkswagen'];
 const insuranceCompanies = ['ABC Insurance', 'XYZ Insurance', 'Premium Insure', 'SecureCover', 'SafeGuard', 'No Insurance'];
 const statusOptions = ['Active', 'Assigned', 'Completed'];
+const fuelLevels = ['Empty', '1/4', '1/2', '3/4', 'Full'];
+const workTypes = ['Repair', 'Maintenance', 'Body Work', 'Paint', 'Electrical', 'AC Service', 'Insurance Claim', 'Others'];
+const colors = ['Red', 'Blue', 'Black', 'White', 'Silver', 'Gray', 'Green', 'Yellow', 'Other'];
 
 function JobCardForm() {
   const navigate = useNavigate();
@@ -768,7 +823,7 @@ function JobCardForm() {
   // Check if user is service advisor
   const isServiceAdvisor = user?.role === 'service_advisor' || user?.role === 'advisor' || user?.isServiceAdvisor;
 
-  // Form state
+  // Form state - Updated with all new fields
   const [formData, setFormData] = useState({
     vehicle_number: '',
     date: new Date().toISOString().split('T')[0],
@@ -783,7 +838,18 @@ function JobCardForm() {
     job_description: '',
     promised_delivery_date: '',
     number_plate_id: '',
-    status: 'Active'
+    status: 'Active',
+    // New fields from API
+    vin_number: '',
+    odometer_in: '',
+    fuel_level_in: '',
+    color: '',
+    work_type: '',
+    insurer: '',
+    policy_no: '',
+    claim_no: '',
+    accessories: '',
+    valuable_declared: ''
   });
 
   const [availableNumberPlates, setAvailableNumberPlates] = useState([]);
@@ -961,6 +1027,7 @@ function JobCardForm() {
         const jobCard = result.data;
         console.log('📝 Setting form data with:', jobCard);
         
+        // Updated to include all fields
         setFormData({
           vehicle_number: jobCard.vehicle_number || '',
           date: jobCard.date || new Date().toISOString().split('T')[0],
@@ -975,7 +1042,18 @@ function JobCardForm() {
           job_description: jobCard.job_description || '',
           promised_delivery_date: jobCard.promised_delivery_date || '',
           number_plate_id: jobCard.number_plate_id || '',
-          status: jobCard.status || 'Active'
+          status: jobCard.status || 'Active',
+          // New fields
+          vin_number: jobCard.vin_number || '',
+          odometer_in: jobCard.odometer_in || '',
+          fuel_level_in: jobCard.fuel_level_in || '',
+          color: jobCard.color || '',
+          work_type: jobCard.work_type || '',
+          insurer: jobCard.insurer || '',
+          policy_no: jobCard.policy_no || '',
+          claim_no: jobCard.claim_no || '',
+          accessories: jobCard.accessories || '',
+          valuable_declared: jobCard.valuable_declared || ''
         });
         
         setDataLoaded(true);
@@ -1048,7 +1126,7 @@ function JobCardForm() {
         };
         console.log('🔄 UPDATE mode - limited fields:', requestBody);
       } else {
-        // For CREATE - send all fields
+        // For CREATE - send all fields including new ones
         requestBody = {
           vehicle_number: formData.vehicle_number.trim(),
           date: formData.date,
@@ -1062,7 +1140,18 @@ function JobCardForm() {
           insurance_name: formData.insurance_name?.trim() || '',
           job_description: formData.job_description.trim(),
           promised_delivery_date: formData.promised_delivery_date || formData.date,
-          // status: formData.status || 'Active'
+          // status: formData.status || 'Active', // Uncomment if your API accepts this in POST
+          // New fields
+          vin_number: formData.vin_number?.trim() || '',
+          odometer_in: formData.odometer_in ? parseInt(formData.odometer_in) : 0,
+          fuel_level_in: formData.fuel_level_in || '',
+          color: formData.color?.trim() || '',
+          work_type: formData.work_type?.trim() || '',
+          insurer: formData.insurer?.trim() || '',
+          policy_no: formData.policy_no?.trim() || '',
+          claim_no: formData.claim_no?.trim() || '',
+          accessories: formData.accessories?.trim() || '',
+          valuable_declared: formData.valuable_declared?.trim() || ''
         };
 
         // Only include number_plate_id if it's a valid number and exists
@@ -1296,6 +1385,19 @@ function JobCardForm() {
 
                 <Grid item xs={12} md={6}>
                   <TextField
+                    label="VIN Number"
+                    name="vin_number"
+                    value={formData.vin_number}
+                    onChange={handleInputChange}
+                    fullWidth
+                    variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
                     label="Car Make"
                     name="car_make"
                     value={formData.car_make}
@@ -1339,6 +1441,59 @@ function JobCardForm() {
                     inputProps={{ min: 1900, max: new Date().getFullYear() + 1 }}
                     helperText={isEditing ? "Cannot be modified in edit mode" : ""}
                   />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Color"
+                    name="color"
+                    value={formData.color}
+                    onChange={handleInputChange}
+                    select
+                    fullWidth
+                    variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
+                  >
+                    <MenuItem value="">Select Color</MenuItem>
+                    {colors.map(color => (
+                      <MenuItem key={color} value={color}>{color}</MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Odometer In (km)"
+                    name="odometer_in"
+                    type="number"
+                    value={formData.odometer_in}
+                    onChange={handleInputChange}
+                    fullWidth
+                    variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    inputProps={{ min: 0 }}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : "Current odometer reading"}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Fuel Level In"
+                    name="fuel_level_in"
+                    value={formData.fuel_level_in}
+                    onChange={handleInputChange}
+                    select
+                    fullWidth
+                    variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
+                  >
+                    <MenuItem value="">Select Fuel Level</MenuItem>
+                    {fuelLevels.map(level => (
+                      <MenuItem key={level} value={level}>{level}</MenuItem>
+                    ))}
+                  </TextField>
                 </Grid>
 
                 {/* Customer Information */}
@@ -1391,6 +1546,15 @@ function JobCardForm() {
                   />
                 </Grid>
 
+                {/* Insurance Information */}
+                <Grid item xs={12}>
+                  <Paper sx={{ p: 3, backgroundColor: '#e8f5e9', color: '#2e7d32', mt: 2 }}>
+                    <Typography variant="h6" gutterBottom fontWeight="bold">
+                      🛡️ Insurance Information
+                    </Typography>
+                  </Paper>
+                </Grid>
+
                 <Grid item xs={12} md={6}>
                   <TextField
                     label="Insurance Name"
@@ -1410,6 +1574,45 @@ function JobCardForm() {
                   </TextField>
                 </Grid>
 
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Insurer"
+                    name="insurer"
+                    value={formData.insurer}
+                    onChange={handleInputChange}
+                    fullWidth
+                    variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : "Insurance company name"}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Policy Number"
+                    name="policy_no"
+                    value={formData.policy_no}
+                    onChange={handleInputChange}
+                    fullWidth
+                    variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Claim Number"
+                    name="claim_no"
+                    value={formData.claim_no}
+                    onChange={handleInputChange}
+                    fullWidth
+                    variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
+                  />
+                </Grid>
+
                 {/* Service Information */}
                 <Grid item xs={12}>
                   <Paper sx={{ p: 3, backgroundColor: '#fff9c4', color: '#f57f17', mt: 2 }}>
@@ -1417,6 +1620,25 @@ function JobCardForm() {
                       🛠️ Service Information
                     </Typography>
                   </Paper>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Work Type"
+                    name="work_type"
+                    value={formData.work_type}
+                    onChange={handleInputChange}
+                    select
+                    fullWidth
+                    variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : ""}
+                  >
+                    <MenuItem value="">Select Work Type</MenuItem>
+                    {workTypes.map(type => (
+                      <MenuItem key={type} value={type}>{type}</MenuItem>
+                    ))}
+                  </TextField>
                 </Grid>
 
                 <Grid item xs={12} md={6}>
@@ -1433,8 +1655,6 @@ function JobCardForm() {
                     helperText={isEditing ? "Cannot be modified in edit mode" : ""}
                   />
                 </Grid>
-
-               
 
                 {!isEditing && (
                   <Grid item xs={12} md={6}>
@@ -1460,10 +1680,40 @@ function JobCardForm() {
                         </MenuItem>
                       ))}
                     </TextField>
-                    
-                   
                   </Grid>
                 )}
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Accessories"
+                    name="accessories"
+                    value={formData.accessories}
+                    onChange={handleInputChange}
+                    fullWidth
+                    multiline
+                    rows={2}
+                    variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : "List of accessories in the vehicle"}
+                    placeholder="e.g., Music system, GPS, etc."
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Valuable Declared"
+                    name="valuable_declared"
+                    value={formData.valuable_declared}
+                    onChange={handleInputChange}
+                    fullWidth
+                    multiline
+                    rows={2}
+                    variant="outlined"
+                    disabled={loading || !isServiceAdvisor || isEditing}
+                    helperText={isEditing ? "Cannot be modified in edit mode" : "Declared valuable items in the vehicle"}
+                    placeholder="e.g., Laptop, documents, etc."
+                  />
+                </Grid>
 
                 <Grid item xs={12}>
                   <TextField
@@ -1481,6 +1731,26 @@ function JobCardForm() {
                     helperText={isEditing ? "Cannot be modified in edit mode" : ""}
                   />
                 </Grid>
+
+                {/* Status (for edit mode only) */}
+                {isEditing && (
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Status"
+                      name="status"
+                      value={formData.status}
+                      onChange={handleInputChange}
+                      select
+                      fullWidth
+                      variant="outlined"
+                      disabled={loading || !isServiceAdvisor}
+                    >
+                      {statusOptions.map(status => (
+                        <MenuItem key={status} value={status}>{status}</MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                )}
 
                 {/* Action Buttons */}
                 <Grid item xs={12}>
