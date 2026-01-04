@@ -23,6 +23,7 @@
     "crypto-js": "^4.2.0",
     "digest-fetch": "^3.1.1",
     "es-toolkit": "^1.40.0",
+    "formik": "^2.4.9",
     "prop-types": "15.8.1",
     "react": "18.2.0",
     "react-chartjs-2": "5.2.0",
@@ -35,7 +36,7 @@
     "stylis": "4.1.4",
     "stylis-plugin-rtl": "^2.1.1",
     "web-vitals": "^3.3.2",
-    "yup": "1.1.1"
+    "yup": "^1.1.1"
   },
   "scripts": {
     "start": "react-scripts start",

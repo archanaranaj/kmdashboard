@@ -31,7 +31,8 @@ import {
  QrCode as NumberPlateIcon,
   People as UsersIcon,
    Receipt as PettyCashIcon,
-  PointOfSale as SalesIcon
+  PointOfSale as SalesIcon,
+  PeopleAlt as CustomerIcon
 } from '@mui/icons-material';
 
 import { useAuth } from '../contexts/AuthContext';
@@ -57,6 +58,9 @@ import PettyCashDetails from '../pages/PettyCashDetails';
 import PettySalesDetails from 'pages/PettySalesDetails';
 import PettyCashList from 'pages/PettyCashList';
 import SalesList from 'pages/SalesList';
+import Customer from '../pages/Customer';
+import CustomerView from '../pages/CustomerView'; // Import Customer View page
+import CustomerForm from '../pages/CustomerForm'; // Import Customer Form page
 const drawerWidth = 240;
 
 const menuItems = [
@@ -69,7 +73,7 @@ const menuItems = [
    { text: 'Users', icon: <UsersIcon />, path: '/users', roles: ['admin', 'service_advisor', 'accounts'] }, 
     { text: 'Petty Cash', icon: <PettyCashIcon />, path: '/petty-cash', roles: ['admin','accounts'] },
   { text: 'Sales', icon: <SalesIcon />, path: '/sales', roles: ['admin','accounts'] },
-
+ { text: 'Customers', icon: <CustomerIcon />, path: '/customers', roles: ['admin','service_advisor', 'accounts'] }, // Added Customer menu item
  
 ];
 
@@ -303,6 +307,11 @@ function DashboardLayout() {
   <Route path="/petty-sales/:id" element={<PettySalesDetails />} />
   <Route path="/petty-cash" element={<PettyCashList />} />
   <Route path="/sales" element={<SalesList />} />
+     <Route path="customers" element={<Customer />} />
+      <Route path="/customers/view/:id" element={<CustomerView />} />
+            <Route path="/customers/add" element={<CustomerForm />} />
+            <Route path="/customers/edit/:id" element={<CustomerForm />} />
+            
   
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
