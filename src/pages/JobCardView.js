@@ -1,3 +1,4 @@
+
 // import React, { useState, useEffect } from 'react';
 // import {
 //   Card,
@@ -93,6 +94,9 @@
 
 //   // Check if current user is from accounts department
 //   const isAccountsDept = user?.role === 'accounts';
+
+//   // Check if job card is completed
+//   const isJobCompleted = jobCard?.status?.toLowerCase() === 'completed';
 
 //   // Payment modes
 //   const paymentModes = [
@@ -320,6 +324,7 @@
 //   //   } catch (error) {
 //   //     console.error('❌ Error fetching gate pass entries:', error);
 //   //     setGatePassEntries([]);
+//   //     }
 //   //   } finally {
 //   //     setGatePassLoading(false);
 //   //   }
@@ -397,7 +402,7 @@
 
 //   // Open assign number dialog
 //   const handleOpenAssignDialog = () => {
-//     if (!isAccountsDept) return;
+//     if (!isAccountsDept || isJobCompleted) return;
     
 //     setAssignDialogOpen(true);
 //     setJobCardNumber('');
@@ -657,6 +662,7 @@
 
 //   // Open gate pass creation dialog
 //   const handleOpenGatePassDialog = () => {
+//     if (isJobCompleted) return;
 //     setGatePassDialogOpen(true);
 //     setGatePassError('');
 //   };
@@ -1014,7 +1020,7 @@
 //                         <Typography variant="body2">
 //                           Please assign a job card number to view and add petty cash/sales entries.
 //                         </Typography>
-//                         {isAccountsDept && (
+//                         {isAccountsDept && !isJobCompleted && (
 //                           <Button 
 //                             variant="outlined" 
 //                             color="primary" 
@@ -1038,14 +1044,16 @@
 //                                 Filtered by Job Card Number: {jobCard.job_card_number}
 //                               </Typography>
 //                             </Typography>
-//                             <Button
-//                               variant="contained"
-//                               color="primary"
-//                               startIcon={<AddIcon />}
-//                               onClick={() => setAddPettyDialogOpen(true)}
-//                             >
-//                               Add Petty Cash
-//                             </Button>
+//                             {!isJobCompleted && (
+//                               <Button
+//                                 variant="contained"
+//                                 color="primary"
+//                                 startIcon={<AddIcon />}
+//                                 onClick={() => setAddPettyDialogOpen(true)}
+//                               >
+//                                 Add Petty Cash
+//                               </Button>
+//                             )}
 //                           </Box>
 
 //                           {pettyCashLoading ? (
@@ -1102,14 +1110,16 @@
 //                                 Filtered by Job Card Number: {jobCard.job_card_number}
 //                               </Typography>
 //                             </Typography>
-//                             <Button
-//                               variant="contained"
-//                               color="secondary"
-//                               startIcon={<AddIcon />}
-//                               onClick={() => setAddSalesDialogOpen(true)}
-//                             >
-//                               Add Sales Entry
-//                             </Button>
+//                             {!isJobCompleted && (
+//                               <Button
+//                                 variant="contained"
+//                                 color="secondary"
+//                                 startIcon={<AddIcon />}
+//                                 onClick={() => setAddSalesDialogOpen(true)}
+//                               >
+//                                 Add Sales Entry
+//                               </Button>
+//                             )}
 //                           </Box>
 
 //                           {pettySalesLoading ? (
@@ -1175,14 +1185,16 @@
 //                                 Filtered by Vehicle: {jobCard.vehicle_number}
 //                               </Typography>
 //                             </Typography>
-//                             <Button
-//                               variant="contained"
-//                               color="warning"
-//                               startIcon={<AddIcon />}
-//                               onClick={handleOpenGatePassDialog}
-//                             >
-//                               Create Gate Pass
-//                             </Button>
+//                             {!isJobCompleted && (
+//                               <Button
+//                                 variant="contained"
+//                                 color="warning"
+//                                 startIcon={<AddIcon />}
+//                                 onClick={handleOpenGatePassDialog}
+//                               >
+//                                 Create Gate Pass
+//                               </Button>
+//                             )}
 //                           </Box>
 
 //                           {gatePassLoading ? (
@@ -1236,15 +1248,17 @@
 //                               <Typography variant="body1" color="textSecondary" gutterBottom>
 //                                 No gate pass entries found for this job card.
 //                               </Typography>
-//                               <Button
-//                                 variant="outlined"
-//                                 color="primary"
-//                                 startIcon={<GatePassIcon />}
-//                                 onClick={handleOpenGatePassDialog}
-//                                 sx={{ mt: 1 }}
-//                               >
-//                                 Create First Gate Pass
-//                               </Button>
+//                               {!isJobCompleted && (
+//                                 <Button
+//                                   variant="outlined"
+//                                   color="primary"
+//                                   startIcon={<GatePassIcon />}
+//                                   onClick={handleOpenGatePassDialog}
+//                                   sx={{ mt: 1 }}
+//                                 >
+//                                   Create First Gate Pass
+//                                 </Button>
+//                               )}
 //                             </Box>
 //                           )}
 //                         </Box>
@@ -1265,56 +1279,34 @@
 //                   Quick Actions
 //                 </Typography>
 //                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-//                   <Button 
-//                     variant="contained" 
-//                     color="primary"
-//                     size="large"
-//                     onClick={() => navigate(`/job-cards/edit/${jobCard.id}`)}
-//                     fullWidth
-//                   >
-//                     Edit Job Card
-//                   </Button>
+//                   {!isJobCompleted && (
+//                     <Button 
+//                       variant="contained" 
+//                       color="primary"
+//                       size="large"
+//                       onClick={() => navigate(`/job-cards/edit/${jobCard.id}`)}
+//                       fullWidth
+//                     >
+//                       Edit Job Card
+//                     </Button>
+//                   )}
                   
-//                   {/* Add Petty Cash Button
-//                   <Button 
-//                     variant="contained" 
-//                     color="success"
-//                     size="large"
-//                     startIcon={<AddIcon />}
-//                     onClick={() => setAddPettyDialogOpen(true)}
-//                     disabled={!jobCard.job_card_number}
-//                     fullWidth
-//                   >
-//                     {jobCard.job_card_number ? 'Add Petty Cash' : 'Assign Number First'}
-//                   </Button> */}
-
-//                   {/* Add Sales Button
-//                   <Button 
-//                     variant="contained" 
-//                     color="secondary"
-//                     size="large"
-//                     startIcon={<SalesIcon />}
-//                     onClick={() => setAddSalesDialogOpen(true)}
-//                     disabled={!jobCard.job_card_number}
-//                     fullWidth
-//                   >
-//                     {jobCard.job_card_number ? 'Add Sales Entry' : 'Assign Number First'}
-//                   </Button> */}
-
 //                   {/* Create Gate Pass Button */}
-//                   <Button 
-//                     variant="contained" 
-//                     color="warning"
-//                     size="large"
-//                     startIcon={<GatePassIcon />}
-//                     onClick={handleOpenGatePassDialog}
-//                     fullWidth
-//                   >
-//                     Create Gate Pass
-//                   </Button>
+//                   {!isJobCompleted && (
+//                     <Button 
+//                       variant="contained" 
+//                       color="warning"
+//                       size="large"
+//                       startIcon={<GatePassIcon />}
+//                       onClick={handleOpenGatePassDialog}
+//                       fullWidth
+//                     >
+//                       Create Gate Pass
+//                     </Button>
+//                   )}
                   
 //                   {/* Assign Number Button - Only for Accounts Department */}
-//                   {isAccountsDept && (
+//                   {isAccountsDept && !isJobCompleted && (
 //                     <Button 
 //                       variant="contained" 
 //                       color="info"
@@ -1370,15 +1362,17 @@
 //                       <Typography variant="body1" color="textSecondary" gutterBottom>
 //                         No number assigned yet
 //                       </Typography>
-//                       <Button 
-//                         variant="outlined" 
-//                         color="warning"
-//                         startIcon={<AssignmentIcon />}
-//                         onClick={handleOpenAssignDialog}
-//                         size="small"
-//                       >
-//                         Assign Number
-//                       </Button>
+//                       {!isJobCompleted && (
+//                         <Button 
+//                           variant="outlined" 
+//                           color="warning"
+//                           startIcon={<AssignmentIcon />}
+//                           onClick={handleOpenAssignDialog}
+//                           size="small"
+//                         >
+//                           Assign Number
+//                         </Button>
+//                       )}
 //                     </Box>
 //                   )}
 //                 </CardContent>
@@ -2158,58 +2152,6 @@ const fetchPettySalesEntries = async () => {
 };
 
   // Fetch gate pass entries
-  // const fetchGatePassEntries = async () => {
-  //   try {
-  //     setGatePassLoading(true);
-      
-  //     let url = `${BASE_URL}/api/gate-passes`;
-  //     const params = new URLSearchParams();
-      
-  //     if (jobCard?.vehicle_number) {
-  //       params.append('vehicle_number', jobCard.vehicle_number);
-  //       console.log(`🔍 Fetching gate passes for vehicle: ${jobCard.vehicle_number}`);
-  //     }
-      
-  //     if (params.toString()) {
-  //       url += `?${params.toString()}`;
-  //     }
-
-  //     console.log(`📡 Fetching gate passes from: ${url}`);
-
-  //     const response = await fetch(url, {
-  //       method: 'GET',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Accept': 'application/json',
-  //         'Authorization': `Bearer ${token}`,
-  //       },
-  //     });
-
-  //     if (response.ok) {
-  //       const result = await response.json();
-  //       console.log('✅ Gate pass entries fetched:', result);
-  //       if (result.status && Array.isArray(result.data)) {
-  //         // Filter gate passes by job card ID
-  //         const filteredGatePasses = result.data.filter(gatePass => 
-  //           gatePass.job_card_id == id
-  //         );
-  //         setGatePassEntries(filteredGatePasses);
-  //       } else {
-  //         setGatePassEntries([]);
-  //       }
-  //     } else {
-  //       console.error('❌ Failed to fetch gate pass entries');
-  //       setGatePassEntries([]);
-  //     }
-  //   } catch (error) {
-  //     console.error('❌ Error fetching gate pass entries:', error);
-  //     setGatePassEntries([]);
-  //     }
-  //   } finally {
-  //     setGatePassLoading(false);
-  //   }
-  // };
-  // Fetch gate pass entries - FIXED VERSION
 const fetchGatePassEntries = async () => {
   try {
     setGatePassLoading(true);
@@ -2282,7 +2224,9 @@ const fetchGatePassEntries = async () => {
 
   // Open assign number dialog
   const handleOpenAssignDialog = () => {
-    if (!isAccountsDept || isJobCompleted) return;
+    // TEMPORARILY COMMENTED OUT: Permission check for accounts department only
+    // if (!isAccountsDept || isJobCompleted) return;
+    if (isJobCompleted) return;
     
     setAssignDialogOpen(true);
     setJobCardNumber('');
@@ -2726,8 +2670,8 @@ const fetchGatePassEntries = async () => {
                         />
                       )}
                     </Typography>
-                    {/* Show assigned number prominently for accounts department */}
-                    {isAccountsDept && jobCard.job_card_number && (
+                    {/* Show assigned number prominently for all users */}
+                    {jobCard.job_card_number && (
                       <Typography variant="h5" color="success.main" sx={{ mt: 1 }}>
                         📋 Assigned Number: {jobCard.job_card_number}
                       </Typography>
@@ -2900,7 +2844,9 @@ const fetchGatePassEntries = async () => {
                         <Typography variant="body2">
                           Please assign a job card number to view and add petty cash/sales entries.
                         </Typography>
-                        {isAccountsDept && !isJobCompleted && (
+                        {/* TEMPORARILY CHANGED: All users can assign job card numbers */}
+                        {/* {isAccountsDept && !isJobCompleted && ( */}
+                        {!isJobCompleted && (
                           <Button 
                             variant="outlined" 
                             color="primary" 
@@ -3185,8 +3131,10 @@ const fetchGatePassEntries = async () => {
                     </Button>
                   )}
                   
-                  {/* Assign Number Button - Only for Accounts Department */}
-                  {isAccountsDept && !isJobCompleted && (
+                  {/* Assign Number Button - NOW ALL USERS CAN ASSIGN */}
+                  {/* TEMPORARILY CHANGED: All users can assign job card numbers */}
+                  {/* {isAccountsDept && !isJobCompleted && ( */}
+                  {!isJobCompleted && (
                     <Button 
                       variant="contained" 
                       color="info"
@@ -3221,43 +3169,44 @@ const fetchGatePassEntries = async () => {
               </CardContent>
             </Card>
 
-            {/* Assigned Number Card - Only for Accounts Department */}
-            {isAccountsDept && (
-              <Card sx={{ mb: 3, boxShadow: 3, border: '2px solid', borderColor: jobCard.job_card_number ? 'success.main' : 'warning.main' }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Typography variant="h6" gutterBottom color={jobCard.job_card_number ? 'success.main' : 'warning.main'} fontWeight="bold">
-                    📋 Job Card Number
-                  </Typography>
-                  {jobCard.job_card_number ? (
-                    <Box sx={{ textAlign: 'center', py: 2 }}>
-                      <Typography variant="h3" color="success.main" fontWeight="bold">
-                        {jobCard.job_card_number}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-                        Assigned by Accounts Department
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <Box sx={{ textAlign: 'center', py: 2 }}>
-                      <Typography variant="body1" color="textSecondary" gutterBottom>
-                        No number assigned yet
-                      </Typography>
-                      {!isJobCompleted && (
-                        <Button 
-                          variant="outlined" 
-                          color="warning"
-                          startIcon={<AssignmentIcon />}
-                          onClick={handleOpenAssignDialog}
-                          size="small"
-                        >
-                          Assign Number
-                        </Button>
-                      )}
-                    </Box>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+            {/* Assigned Number Card - NOW FOR ALL USERS */}
+            {/* TEMPORARILY CHANGED: Show for all users */}
+            {/* {isAccountsDept && ( */}
+            <Card sx={{ mb: 3, boxShadow: 3, border: '2px solid', borderColor: jobCard.job_card_number ? 'success.main' : 'warning.main' }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" gutterBottom color={jobCard.job_card_number ? 'success.main' : 'warning.main'} fontWeight="bold">
+                  📋 Job Card Number
+                </Typography>
+                {jobCard.job_card_number ? (
+                  <Box sx={{ textAlign: 'center', py: 2 }}>
+                    <Typography variant="h3" color="success.main" fontWeight="bold">
+                      {jobCard.job_card_number}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                      Assigned Job Card Number
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Box sx={{ textAlign: 'center', py: 2 }}>
+                    <Typography variant="body1" color="textSecondary" gutterBottom>
+                      No number assigned yet
+                    </Typography>
+                    {!isJobCompleted && (
+                      <Button 
+                        variant="outlined" 
+                        color="warning"
+                        startIcon={<AssignmentIcon />}
+                        onClick={handleOpenAssignDialog}
+                        size="small"
+                      >
+                        Assign Number
+                      </Button>
+                    )}
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+            {/* )} */}
 
             {/* Financial Summary */}
             <Card sx={{ mb: 3, boxShadow: 3 }}>
@@ -3424,8 +3373,8 @@ const fetchGatePassEntries = async () => {
                   <Typography variant="body2" gutterBottom>
                     <strong>Last Updated:</strong> {formatDate(jobCard.updated_at)}
                   </Typography>
-                  {/* Show assigned number in system info for accounts */}
-                  {isAccountsDept && jobCard.job_card_number && (
+                  {/* Show assigned number in system info for all users */}
+                  {jobCard.job_card_number && (
                     <Typography variant="body2" gutterBottom>
                       <strong>Assigned Number:</strong> {jobCard.job_card_number}
                     </Typography>
