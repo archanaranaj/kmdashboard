@@ -21,7 +21,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 
 function Dashboard() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [stats, setStats] = useState({
     totalJobs: 0,
     platesScannedToday: 0,
@@ -39,7 +39,12 @@ function Dashboard() {
   useEffect(() => {
     const fetchBranches = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/branches`);
+        const res = await fetch(`${API_BASE_URL}/branches`, {
+          headers: {
+            'Accept': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+        });
         const json = await res.json();
 
         if (Array.isArray(json?.data)) {
@@ -54,7 +59,7 @@ function Dashboard() {
     };
 
     fetchBranches();
-  }, [API_BASE_URL, selectedBranchId]);
+  }, [API_BASE_URL, selectedBranchId, token]);
 
   useEffect(() => {
     if (!selectedBranchId) return;
@@ -62,7 +67,12 @@ function Dashboard() {
     const fetchDashboard = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE_URL}/dashboard?branch_id=${selectedBranchId}`);
+        const res = await fetch(`${API_BASE_URL}/dashboard?branch_id=${selectedBranchId}`, {
+          headers: {
+            'Accept': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+        });
         const json = await res.json();
 
         if (json?.status && json?.data) {
@@ -88,7 +98,7 @@ function Dashboard() {
     };
 
     fetchDashboard();
-  }, [API_BASE_URL, selectedBranchId]);
+  }, [API_BASE_URL, selectedBranchId, token]);
 
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
