@@ -246,7 +246,7 @@ function Dashboard() {
                 boxShadow: 3,
               }}
             >
-              <ScheduleIcon sx={{ fontSize: { xs: 24, sm: 30 }, color: 'white' }} />
+              <TodayIcon sx={{ fontSize: { xs: 24, sm: 30 }, color: 'white' }} />
             </Box>
             <CardContent sx={{
               pt: { xs: 3, sm: 4 },
@@ -362,7 +362,8 @@ function Dashboard() {
                 boxShadow: 3,
               }}
             >
-              <TodayIcon sx={{ fontSize: { xs: 24, sm: 30 }, color: 'white' }} />
+
+              <ScheduleIcon sx={{ fontSize: { xs: 24, sm: 30 }, color: 'white' }} />
             </Box>
             <CardContent sx={{
               pt: { xs: 3, sm: 4 },
