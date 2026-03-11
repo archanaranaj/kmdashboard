@@ -4,6 +4,10 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
@@ -19,28 +23,72 @@ import { useAuth } from '../contexts/AuthContext';
 function Dashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState({
-    totalJobs: 45,
-    pendingJobs: 12,
-    completedJobs: 28,
-    todayJobs: 5
+    totalJobs: 0,
+    platesScannedToday: 0,
+    jobCardsCreatedToday: 0,
+    pendingPlatesToday: 0
   });
+  const [jobStatusData, setJobStatusData] = useState([]);
+  const [weeklyJobData, setWeeklyJobData] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [selectedBranchId, setSelectedBranchId] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Sample data for charts
-  const jobStatusData = [
-    { name: 'Pending', value: 12 },
-    { name: 'In Progress', value: 5 },
-    { name: 'Completed', value: 28 },
-  ];
+  const API_BASE_URL = 'https://gms-api.kmgarage.com/api';
 
-  const weeklyJobData = [
-    { day: 'Mon', jobs: 8, completed: 5 },
-    { day: 'Tue', jobs: 12, completed: 8 },
-    { day: 'Wed', jobs: 6, completed: 4 },
-    { day: 'Thu', jobs: 14, completed: 10 },
-    { day: 'Fri', jobs: 10, completed: 7 },
-    { day: 'Sat', jobs: 4, completed: 3 },
-    { day: 'Sun', jobs: 2, completed: 1 },
-  ];
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/branches`);
+        const json = await res.json();
+
+        if (Array.isArray(json?.data)) {
+          setBranches(json.data);
+          if (!selectedBranchId && json.data.length > 0) {
+            setSelectedBranchId(String(json.data[0].id ?? json.data[0].branch_id));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch branches', error);
+      }
+    };
+
+    fetchBranches();
+  }, [API_BASE_URL, selectedBranchId]);
+
+  useEffect(() => {
+    if (!selectedBranchId) return;
+
+    const fetchDashboard = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE_URL}/dashboard?branch_id=${selectedBranchId}`);
+        const json = await res.json();
+
+        if (json?.status && json?.data) {
+          const data = json.data;
+
+          // Map API to stats cards
+          setStats({
+            totalJobs: data.totalJobs ?? 0,
+            platesScannedToday: data.today?.platesScanned ?? data.todayJobs ?? 0,
+            jobCardsCreatedToday: data.today?.jobCardsCreated ?? 0,
+            pendingPlatesToday: data.today?.pending ?? data.pendingJobs ?? 0
+          });
+
+          // Charts data
+          setJobStatusData(Array.isArray(data.jobStatusData) ? data.jobStatusData : []);
+          setWeeklyJobData(Array.isArray(data.weeklyJobData) ? data.weeklyJobData : []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard data', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, [API_BASE_URL, selectedBranchId]);
 
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
@@ -48,28 +96,63 @@ function Dashboard() {
   return (
     <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
       {/* Header Section */}
-      <Box sx={{ mb: { xs: 2, sm: 3 } }}>
-        <Typography
-          variant="h4"
-          gutterBottom
-          sx={{
-            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
-            textAlign: { xs: 'center', sm: 'left' }
-          }}
+      <Box
+        sx={{
+          mb: { xs: 2, sm: 3 },
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          justifyContent: 'space-between',
+          gap: 2
+        }}
+      >
+        <Box>
+          <Typography
+            variant="h4"
+            gutterBottom
+            sx={{
+              fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
+              textAlign: { xs: 'left', sm: 'left' }
+            }}
+          >
+            Dashboard
+          </Typography>
+          <Typography
+            variant="subtitle1"
+            color="textSecondary"
+            gutterBottom
+            sx={{
+              textAlign: { xs: 'left', sm: 'left' },
+              fontSize: { xs: '0.9rem', sm: '1rem' }
+            }}
+          >
+            Welcome back, {user?.name}!
+          </Typography>
+        </Box>
+
+        <FormControl
+          size="small"
+          sx={{ minWidth: 200 }}
         >
-          Dashboard
-        </Typography>
-        <Typography
-          variant="subtitle1"
-          color="textSecondary"
-          gutterBottom
-          sx={{
-            textAlign: { xs: 'center', sm: 'left' },
-            fontSize: { xs: '0.9rem', sm: '1rem' }
-          }}
-        >
-          Welcome back, {user?.name}!
-        </Typography>
+          <InputLabel id="branch-select-label">Branch</InputLabel>
+          <Select
+            labelId="branch-select-label"
+            id="branch-select"
+            label="Branch"
+            value={selectedBranchId}
+            onChange={(e) => setSelectedBranchId(e.target.value)}
+            disabled={loading && !branches.length}
+          >
+            {branches.map((branch) => (
+              <MenuItem
+                key={branch.id ?? branch.branch_id}
+                value={String(branch.id ?? branch.branch_id)}
+              >
+                {branch.name ?? branch.branch_name ?? `Branch ${branch.id ?? branch.branch_id}`}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
 
       {/* Stats Cards */}
@@ -125,7 +208,7 @@ function Dashboard() {
                   fontSize: { xs: '0.7rem', sm: '0.8rem' }
                 }}
               >
-                +55% than last week
+                by today
               </Typography>
             </CardContent>
           </Card>
@@ -165,7 +248,7 @@ function Dashboard() {
                 gutterBottom
                 sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
               >
-                Pending Jobs
+                Plates Scanned
               </Typography>
               <Typography
                 variant="h4"
@@ -173,7 +256,7 @@ function Dashboard() {
                 color="warning.main"
                 sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}
               >
-                {stats.pendingJobs}
+                {stats.platesScannedToday}
               </Typography>
               <Typography
                 variant="body2"
@@ -183,7 +266,7 @@ function Dashboard() {
                   fontSize: { xs: '0.7rem', sm: '0.8rem' }
                 }}
               >
-                +3% than last month
+                by today
               </Typography>
             </CardContent>
           </Card>
@@ -223,7 +306,7 @@ function Dashboard() {
                 gutterBottom
                 sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
               >
-                Completed Jobs
+                Job Cards Created against Plates
               </Typography>
               <Typography
                 variant="h4"
@@ -231,7 +314,7 @@ function Dashboard() {
                 color="success.main"
                 sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}
               >
-                {stats.completedJobs}
+                {stats.jobCardsCreatedToday}
               </Typography>
               <Typography
                 variant="body2"
@@ -241,7 +324,7 @@ function Dashboard() {
                   fontSize: { xs: '0.7rem', sm: '0.8rem' }
                 }}
               >
-                +1% than yesterday
+                by today
               </Typography>
             </CardContent>
           </Card>
@@ -281,7 +364,7 @@ function Dashboard() {
                 gutterBottom
                 sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
               >
-                Today's Jobs
+                Pending Plates
               </Typography>
               <Typography
                 variant="h4"
@@ -289,7 +372,7 @@ function Dashboard() {
                 color="info.main"
                 sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}
               >
-                {stats.todayJobs}
+                {stats.pendingPlatesToday}
               </Typography>
               <Typography
                 variant="body2"
@@ -299,7 +382,7 @@ function Dashboard() {
                   fontSize: { xs: '0.7rem', sm: '0.8rem' }
                 }}
               >
-                Just updated
+                by today
               </Typography>
             </CardContent>
           </Card>
@@ -316,7 +399,7 @@ function Dashboard() {
                 gutterBottom
                 sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
               >
-                Weekly Job Trends
+                Weekly Reports
               </Typography>
               <Box sx={{ width: '100%', height: { xs: 250, sm: 300 } }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -343,7 +426,7 @@ function Dashboard() {
                 gutterBottom
                 sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
               >
-                Job Status Distribution
+                Number Plates Status
               </Typography>
               <Box sx={{ width: '100%', height: { xs: 250, sm: 300 } }}>
                 <ResponsiveContainer width="100%" height="100%">
