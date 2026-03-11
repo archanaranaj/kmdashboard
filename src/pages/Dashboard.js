@@ -218,7 +218,7 @@ function Dashboard() {
                   fontSize: { xs: '0.7rem', sm: '0.8rem' }
                 }}
               >
-                by today
+                till today
               </Typography>
             </CardContent>
           </Card>
@@ -419,8 +419,8 @@ function Dashboard() {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="jobs" fill="#8884d8" name="Total Jobs" />
-                    <Bar dataKey="completed" fill="#82ca9d" name="Completed Jobs" />
+                    <Bar dataKey="jobs" fill="#8884d8" name="Plates Scanned" />
+                    <Bar dataKey="completed" fill="#82ca9d" name="Job Cards Created" />
                   </BarChart>
                 </ResponsiveContainer>
               </Box>
