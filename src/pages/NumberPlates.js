@@ -5,6 +5,8 @@ import {
   CardContent,
   Typography,
   Button,
+  FormControl,
+  InputLabel,
   Table,
   TableBody,
   TableCell,
@@ -20,7 +22,9 @@ import {
   TextField,
   Grid,
   Pagination,
-  InputAdornment
+  InputAdornment,
+  Select,
+  MenuItem
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
@@ -37,6 +41,8 @@ function NumberPlates() {
   const [success, setSuccess] = useState('');
   const [numberPlates, setNumberPlates] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [branches, setBranches] = useState([]);
+  const [selectedBranchId, setSelectedBranchId] = useState('');
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -46,6 +52,47 @@ function NumberPlates() {
   const navigate = useNavigate();
   const { user, token } = useAuth();
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
+
+  // Fetch branches for branch filter dropdown
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        if (!token) return;
+
+        const response = await fetch(`${BASE_URL}/api/branches`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch branches: ${response.status}`);
+        }
+
+        const result = await response.json();
+        const list = Array.isArray(result?.data) ? result.data : [];
+        setBranches(list);
+
+        // Set default branch for a better UX
+        if (!selectedBranchId && list.length > 0) {
+          const userBranchId = user?.branchId ?? user?.branch_id;
+          const matchedUserBranch = userBranchId
+            ? list.find((b) => String(b.id ?? b.branch_id) === String(userBranchId))
+            : null;
+
+          const defaultBranch = matchedUserBranch || list[0];
+          setSelectedBranchId(String(defaultBranch?.id ?? defaultBranch?.branch_id ?? ''));
+        }
+      } catch (e) {
+        console.error('Failed to fetch branches', e);
+      }
+    };
+
+    fetchBranches();
+  }, [BASE_URL, token, user?.branchId, user?.branch_id]);
 
 
   // Fetch number plates when component mounts or when pagination/search changes
@@ -57,7 +104,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
       console.log('⚠️ User exists but token is missing');
       setError('Authentication issue: Token missing. Please logout and login again.');
     }
-  }, [user, token, pagination.page, pagination.limit, searchTerm]);
+  }, [user, token, pagination.page, pagination.limit, searchTerm, selectedBranchId]);
 
   const fetchNumberPlates = async () => {
     try {
@@ -75,6 +122,11 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
 
       if (searchTerm) {
         params.append('search', searchTerm);
+      }
+
+      // Branch filter (server-side)
+      if (selectedBranchId) {
+        params.append('branch_id', selectedBranchId);
       }
 
       const response = await fetch(`${BASE_URL}/api/number-plates?${params}`, {
@@ -119,7 +171,8 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
         vehicleType: plate.vehicle_type,
         vehicleBrand: plate.vehicle_brand,
         cameraLocation: plate.device_no,
-        captureTime: plate.capture_time
+        captureTime: plate.capture_time,
+        branchName: plate?.branch?.name ?? plate?.branch_name ?? 'N/A',
       }));
 
       console.log('🔄 Transformed plates:', transformedPlates);
@@ -271,6 +324,29 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
               />
             </Grid>
             <Grid item xs={12} md={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="branch-filter-number-plates-label">Branch</InputLabel>
+                <Select
+                  labelId="branch-filter-number-plates-label"
+                  label="Branch"
+                  value={selectedBranchId}
+                  onChange={(e) => {
+                    setSelectedBranchId(e.target.value);
+                    setPagination(prev => ({ ...prev, page: 1 }));
+                  }}
+                >
+                  <MenuItem value="">
+                    All Branches
+                  </MenuItem>
+                  {branches.map((b) => (
+                    <MenuItem key={b.id ?? b.branch_id} value={String(b.id ?? b.branch_id)}>
+                      {b.name ?? b.branch_name ?? `Branch ${b.id ?? b.branch_id}`}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={3}>
               <TextField
                 select
                 fullWidth
@@ -287,7 +363,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
                 <option value={100}>100</option>
               </TextField>
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={12}>
               <Typography variant="body2" color="textSecondary" align="center">
                 Showing {numberPlates.length} of {pagination.total} plates
               </Typography>
@@ -343,6 +419,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
                   <TableCell><strong>ID</strong></TableCell>
                   <TableCell><strong>Plate Number</strong></TableCell>
                   <TableCell><strong>Date Detected</strong></TableCell>
+                  <TableCell><strong>Branch</strong></TableCell>
                   <TableCell><strong>Vehicle Info</strong></TableCell>
                   <TableCell><strong>Status</strong></TableCell>
                   <TableCell><strong>Actions</strong></TableCell>
@@ -367,6 +444,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
                         </Typography>
                       )}
                     </TableCell>
+                    <TableCell>{plate.branchName}</TableCell>
                     <TableCell>
                       <Typography variant="body2">
                         {plate.vehicleBrand} • {plate.vehicleColor}
@@ -395,7 +473,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
                 ))}
                 {numberPlates.length === 0 && !loading && (
                   <TableRow>
-                    <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                    <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                       <Typography variant="body1" color="textSecondary">
                         {searchTerm ? 'No number plates found matching your search' : 'No number plates found'}
                       </Typography>
@@ -404,7 +482,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
                 )}
                 {loading && (
                   <TableRow>
-                    <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                    <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                       <CircularProgress />
                       <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
                         Loading number plates...
