@@ -462,6 +462,8 @@ import {
   CardContent,
   Typography,
   Button,
+  FormControl,
+  InputLabel,
   Table,
   TableBody,
   TableCell,
@@ -476,6 +478,7 @@ import {
   TextField,
   Grid,
   MenuItem,
+  Select,
   TablePagination
 } from '@mui/material';
 import {
@@ -491,12 +494,14 @@ import { useAuth } from '../contexts/AuthContext';
 function JobCards() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { token } = useAuth();
+  const { user, token } = useAuth();
   const [jobCards, setJobCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [branches, setBranches] = useState([]);
+  const [selectedBranchId, setSelectedBranchId] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
@@ -517,7 +522,41 @@ function JobCards() {
   // Fetch job cards from API
   useEffect(() => {
     fetchJobCards();
-  }, [token, page, rowsPerPage, customerIdFromUrl]);
+  }, [token, page, rowsPerPage, customerIdFromUrl, selectedBranchId]);
+
+  // Fetch branches for branch filter dropdown
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        if (!token) return;
+        const response = await fetch(`${BASE_URL}/api/branches`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch branches: ${response.status}`);
+        }
+
+        const result = await response.json();
+        const list = Array.isArray(result?.data) ? result.data : [];
+        setBranches(list);
+
+        // Default filter to user's branch if available
+        if (!selectedBranchId && list.length > 0 && user?.branchId) {
+          setSelectedBranchId(String(user.branchId));
+        }
+      } catch (e) {
+        console.error('Failed to fetch branches', e);
+      }
+    };
+
+    fetchBranches();
+  }, [BASE_URL, token, user?.branchId, selectedBranchId]);
 
   const fetchJobCards = async () => {
     try {
@@ -544,6 +583,11 @@ function JobCards() {
       // Add status filter
       if (statusFilter) {
         params.append('status', statusFilter);
+      }
+
+      // Add branch filter (server-side)
+      if (selectedBranchId) {
+        params.append('branch_id', selectedBranchId);
       }
 
       const response = await fetch(`${BASE_URL}/api/job-cards?${params.toString()}`, {
@@ -667,6 +711,10 @@ function JobCards() {
     return 'N/A';
   };
 
+  const getBranchName = (jobCard) => {
+    return jobCard?.branch?.name || jobCard?.branch_name || 'N/A';
+  };
+
   // Helper function to safely render car details
   const getCarDetails = (jobCard) => {
     const make = jobCard.car_make || '';
@@ -787,7 +835,7 @@ function JobCards() {
                 helperText={customerIdFromUrl ? "Search disabled while customer filter is active" : ""}
               />
             </Grid>
-            <Grid item xs={12} md={customerIdFromUrl ? 4 : 3}>
+            <Grid item xs={12} md={customerIdFromUrl ? 4 : 2}>
               <TextField
                 fullWidth
                 select
@@ -802,6 +850,36 @@ function JobCards() {
                 <MenuItem value="completed">Completed</MenuItem>
               </TextField>
             </Grid>
+
+            <Grid item xs={12} md={customerIdFromUrl ? 12 : 2}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="branch-filter-label">Filter by Branch</InputLabel>
+                <Select
+                  labelId="branch-filter-label"
+                  id="branch-filter"
+                  label="Filter by Branch"
+                  value={selectedBranchId}
+                  onChange={(e) => {
+                    setSelectedBranchId(e.target.value);
+                    setPage(0); // Reset to first page when filtering
+                  }}
+                  disabled={loading}
+                >
+                  <MenuItem value="">
+                    All Branches
+                  </MenuItem>
+                  {branches.map((b) => (
+                    <MenuItem
+                      key={b.id ?? b.branch_id}
+                      value={String(b.id ?? b.branch_id)}
+                    >
+                      {b.name ?? b.branch_name ?? `Branch ${b.id ?? b.branch_id}`}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
             {!customerIdFromUrl && (
               <>
                 <Grid item xs={12} md={2}>
@@ -813,12 +891,13 @@ function JobCards() {
                     Search
                   </Button>
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid item xs={12} md={2}>
                   <Button 
                     variant="outlined" 
                     onClick={() => {
                       setSearchTerm('');
                       setStatusFilter('');
+                      setSelectedBranchId('');
                       setPage(0);
                       fetchJobCards();
                     }}
@@ -858,6 +937,7 @@ function JobCards() {
                       <TableCell><strong>Vehicle No.</strong></TableCell>
                       <TableCell><strong>Customer Name</strong></TableCell>
                       <TableCell><strong>Car Details</strong></TableCell>
+                      <TableCell><strong>Branch</strong></TableCell>
                       <TableCell><strong>Service Advisor</strong></TableCell>
                       <TableCell><strong>Date</strong></TableCell>
                       <TableCell><strong>Promised Date</strong></TableCell>
@@ -885,6 +965,7 @@ function JobCards() {
                           <TableCell>
                             {getCarDetails(jobCard)}
                           </TableCell>
+                          <TableCell>{getBranchName(jobCard)}</TableCell>
                           <TableCell>
                             {getServiceAdvisorName(jobCard.service_advisor)}
                           </TableCell>
