@@ -1256,7 +1256,6 @@ function JobCardForm() {
     promised_delivery_date: '',
     number_plate_id: '',
     status: 'Active',
-    vin_number: '',
     odometer_in: '',
     fuel_level_in: '',
     color: '',
@@ -1264,8 +1263,7 @@ function JobCardForm() {
     insurer: '',
     policy_no: '',
     claim_no: '',
-    accessories: '',
-    valuable_declared: ''
+    remarks: ''
   });
 
   const [availableNumberPlates, setAvailableNumberPlates] = useState([]);
@@ -1510,7 +1508,6 @@ function JobCardForm() {
           promised_delivery_date: jobCard.promised_delivery_date || '',
           number_plate_id: jobCard.number_plate_id || '',
           status: jobCard.status || 'Active',
-          vin_number: jobCard.vin_number || '',
           odometer_in: jobCard.odometer_in || '',
           fuel_level_in: jobCard.fuel_level_in || '',
           color: jobCard.color || '',
@@ -1518,8 +1515,8 @@ function JobCardForm() {
           insurer: jobCard.insurer || '',
           policy_no: jobCard.policy_no || '',
           claim_no: jobCard.claim_no || '',
-          accessories: jobCard.accessories || '',
-          valuable_declared: jobCard.valuable_declared || ''
+          // Backend field may be `remarks` or legacy `accessories`
+          remarks: jobCard.remarks ?? jobCard.accessories ?? ''
         });
         
         setDataLoaded(true);
@@ -1599,7 +1596,6 @@ function JobCardForm() {
           job_description: formData.job_description.trim(),
           promised_delivery_date: formData.promised_delivery_date || formData.date,
           status: formData.status || 'Active',
-          vin_number: formData.vin_number?.trim() || '',
           odometer_in: formData.odometer_in ? parseInt(formData.odometer_in) : 0,
           fuel_level_in: formData.fuel_level_in || '',
           color: formData.color?.trim() || '',
@@ -1607,8 +1603,7 @@ function JobCardForm() {
           insurer: formData.insurer?.trim() || '',
           policy_no: formData.policy_no?.trim() || '',
           claim_no: formData.claim_no?.trim() || '',
-          accessories: formData.accessories?.trim() || '',
-          valuable_declared: formData.valuable_declared?.trim() || ''
+          remarks: formData.remarks?.trim() || ''
         };
 
         // Include number_plate_id if valid
@@ -1635,7 +1630,6 @@ function JobCardForm() {
           insurance_name: formData.insurance_name?.trim() || '',
           job_description: formData.job_description.trim(),
           promised_delivery_date: formData.promised_delivery_date || formData.date,
-          vin_number: formData.vin_number?.trim() || '',
           odometer_in: formData.odometer_in ? parseInt(formData.odometer_in) : 0,
           fuel_level_in: formData.fuel_level_in || '',
           color: formData.color?.trim() || '',
@@ -1643,8 +1637,7 @@ function JobCardForm() {
           insurer: formData.insurer?.trim() || '',
           policy_no: formData.policy_no?.trim() || '',
           claim_no: formData.claim_no?.trim() || '',
-          accessories: formData.accessories?.trim() || '',
-          valuable_declared: formData.valuable_declared?.trim() || ''
+          remarks: formData.remarks?.trim() || ''
         };
 
         // Include number_plate_id if valid
@@ -1848,18 +1841,6 @@ function JobCardForm() {
                     label="Chassis Number"
                     name="chassis_number"
                     value={formData.chassis_number}
-                    onChange={handleInputChange}
-                    fullWidth
-                    variant="outlined"
-                    disabled={loading}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="VIN Number"
-                    name="vin_number"
-                    value={formData.vin_number}
                     onChange={handleInputChange}
                     fullWidth
                     variant="outlined"
@@ -2191,35 +2172,19 @@ function JobCardForm() {
                   </TextField>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={12}>
                   <TextField
-                    label="Accessories"
-                    name="accessories"
-                    value={formData.accessories}
+                    label="Remarks"
+                    name="remarks"
+                    value={formData.remarks}
                     onChange={handleInputChange}
                     fullWidth
                     multiline
                     rows={2}
                     variant="outlined"
                     disabled={loading}
-                    helperText="List of accessories in the vehicle"
-                    placeholder="e.g., Music system, GPS, etc."
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Valuable Declared"
-                    name="valuable_declared"
-                    value={formData.valuable_declared}
-                    onChange={handleInputChange}
-                    fullWidth
-                    multiline
-                    rows={2}
-                    variant="outlined"
-                    disabled={loading}
-                    helperText="Declared valuable items in the vehicle"
-                    placeholder="e.g., Laptop, documents, etc."
+                    helperText="Remarks / notes for this job card"
+                    placeholder="e.g., Issues found, additional notes..."
                   />
                 </Grid>
 
