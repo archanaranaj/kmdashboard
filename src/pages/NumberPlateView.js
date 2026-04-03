@@ -375,6 +375,11 @@ function NumberPlateView() {
       setError('Rejection reason is required');
       return;
     }
+    const currentStatus = plateData?.status?.toLowerCase();
+    if (!['pending', 'processed'].includes(currentStatus)) {
+      setError('Only pending or processed plates can be rejected');
+      return;
+    }
 
     try {
       setActionLoading(true);
@@ -781,7 +786,7 @@ function NumberPlateView() {
               </Typography>
               
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {plateData.status?.toLowerCase() === 'pending' && (
+                {['pending', 'processed'].includes(plateData.status?.toLowerCase()) && (
                   <>
                     {/* <Button 
                       variant="contained" 
