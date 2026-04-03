@@ -194,6 +194,7 @@ function NumberPlateView() {
       timestamp: plateDetails.date_detected,
       imageUrl: imageUrl, // Using the new image URL endpoint
       status: plateDetails.status || 'pending',
+      rejectReason: plateDetails.reject_reason || plateDetails.rejection_reason || '',
       
       // Vehicle details from API response
       vehicleDetails: {
@@ -555,6 +556,11 @@ function NumberPlateView() {
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
           {error}
+        </Alert>
+      )}
+      {plateData.status?.toLowerCase() === 'rejected' && plateData.rejectReason && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          <strong>Rejection Reason:</strong> {plateData.rejectReason}
         </Alert>
       )}
 
