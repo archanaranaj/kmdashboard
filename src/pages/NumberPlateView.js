@@ -370,39 +370,46 @@ function NumberPlateView() {
   // };
 
   const handleReject = async () => {
-  try {
-    setActionLoading(true);
-    
-    // Use POST method and correct endpoint format
-    const response = await fetch(`${BASE_URL}/api/number-plates/reject/${id}`, {
-      method: 'POST', // Changed from PUT to POST
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        reason: rejectReason
-      }),
-    });
+    const reason = rejectReason.trim();
+    if (!reason) {
+      setError('Rejection reason is required');
+      return;
+    }
 
-    if (response.ok) {
+    try {
+      setActionLoading(true);
+      setError('');
+
+      // Reject endpoint contract: POST /reject/:id
+      const response = await fetch(`${BASE_URL}/api/number-plates/reject/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reason }),
+      });
+
+      const contentType = response.headers.get('content-type') || '';
+      const responseData = contentType.includes('application/json')
+        ? await response.json()
+        : null;
+
+      if (!response.ok) {
+        throw new Error(responseData?.message || 'Failed to reject number plate');
+      }
+
       console.log('✅ Number plate rejected successfully');
       setRejectDialogOpen(false);
       setRejectReason('');
-      setError('');
-      // Refresh the data to show updated status
       fetchNumberPlateDetails();
-    } else {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to reject number plate');
+    } catch (error) {
+      console.error('Error rejecting number plate:', error);
+      setError(error.message || 'Failed to reject number plate');
+    } finally {
+      setActionLoading(false);
     }
-  } catch (error) {
-    console.error('Error rejecting number plate:', error);
-    setError(error.message);
-  } finally {
-    setActionLoading(false);
-  }
-};
+  };
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'approved': return 'success';
@@ -774,7 +781,7 @@ function NumberPlateView() {
               </Typography>
               
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {plateData.status === 'pending' && (
+                {plateData.status?.toLowerCase() === 'pending' && (
                   <>
                     {/* <Button 
                       variant="contained" 
