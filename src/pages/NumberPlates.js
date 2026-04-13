@@ -30,7 +30,8 @@ import {
   Refresh as RefreshIcon,
   Visibility as VisibilityIcon,
   Search as SearchIcon,
-  Clear as ClearIcon
+  Clear as ClearIcon,
+  FilterAlt as FilterAltIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -262,6 +263,14 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
     }));
   };
 
+  const handleApplyFilters = () => {
+    if (pagination.page !== 1) {
+      setPagination((prev) => ({ ...prev, page: 1 }));
+      return;
+    }
+    fetchNumberPlates();
+  };
+
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'processed': 
@@ -455,6 +464,17 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
                 <option value={50}>50</option>
                 <option value={100}>100</option>
               </TextField>
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <Button
+                fullWidth
+                variant="contained"
+                startIcon={<FilterAltIcon />}
+                onClick={handleApplyFilters}
+                disabled={loading}
+              >
+                Filter
+              </Button>
             </Grid>
             <Grid item xs={12} md={12}>
               <Typography variant="body2" color="textSecondary" align="center">
