@@ -59,73 +59,35 @@ function NumberPlateView() {
       setImageLoading(true);
 
       console.log(`🔍 Fetching details for plate ID: ${id}`);
-      
-      // Always use the list API since it has complete data in image_full_text
-      await fetchFromListAndFilter();
-      
+
+      const response = await fetch(`${BASE_URL}/api/number-plates/${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch number plate details: ${response.status}`);
+      }
+
+      const result = await response.json();
+      const plateDetails =
+        result?.data?.plate ||
+        result?.data ||
+        result?.plate ||
+        null;
+
+      if (!plateDetails) {
+        throw new Error(`Plate with ID ${id} not found in the system`);
+      }
+
+      processPlateData(plateDetails);
     } catch (error) {
       console.error('❌ Error fetching number plate details:', error);
       setError(error.message || 'Failed to fetch number plate details');
-      setLoading(false);
-    }
-  };
-
-  const fetchFromListAndFilter = async () => {
-    try {
-      console.log('🔄 Fetching all plates and filtering...');
-      
-      // Fetch multiple pages to find the plate
-      let foundPlate = null;
-      let page = 1;
-      const limit = 50;
-      
-      while (page <= 10 && !foundPlate) {
-        const params = new URLSearchParams({
-          page: page.toString(),
-          limit: limit.toString()
-        });
-
-        const response = await fetch(`${BASE_URL}/api/number-plates?${params}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch plates list: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log(`📄 Fetched page ${page} with ${result.data?.plates?.length || 0} plates`);
-
-        // Find the specific plate from the list
-        const plates = result.data?.plates || [];
-        foundPlate = plates.find(plate => plate.id == id);
-
-        if (foundPlate) {
-          console.log('✅ Found plate in list:', foundPlate);
-          processPlateData(foundPlate);
-          return;
-        }
-
-        // Check if we've reached the last page
-        if (!plates.length || page >= result.data?.totalPages) {
-          break;
-        }
-        
-        page++;
-      }
-
-      if (!foundPlate) {
-        throw new Error(`Plate with ID ${id} not found in the system`);
-      }
-      
-    } catch (error) {
-      console.error('❌ Error fetching from list:', error);
-      setError(error.message || 'Number plate not found. It may have been deleted or you may not have permission to view it.');
       setLoading(false);
     }
   };

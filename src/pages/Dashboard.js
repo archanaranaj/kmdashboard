@@ -8,6 +8,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
@@ -18,10 +19,12 @@ import {
   CheckCircle as CheckCircleIcon,
   Today as TodayIcon
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 function Dashboard() {
   const { user, token } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalJobs: 0,
     platesScannedToday: 0,
@@ -32,6 +35,8 @@ function Dashboard() {
   const [weeklyJobData, setWeeklyJobData] = useState([]);
   const [branches, setBranches] = useState([]);
   const [selectedBranchId, setSelectedBranchId] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(false);
 
   const API_BASE_URL = 'https://gms-api.kmgarage.com/api';
@@ -67,7 +72,15 @@ function Dashboard() {
     const fetchDashboard = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE_URL}/dashboard?branch_id=${selectedBranchId}`, {
+        const params = new URLSearchParams({ branch_id: selectedBranchId });
+        if (startDate) {
+          params.append('start_date', startDate);
+        }
+        if (endDate) {
+          params.append('end_date', endDate);
+        }
+
+        const res = await fetch(`${API_BASE_URL}/dashboard?${params.toString()}`, {
           headers: {
             'Accept': 'application/json',
             ...(token && { Authorization: `Bearer ${token}` }),
@@ -98,10 +111,21 @@ function Dashboard() {
     };
 
     fetchDashboard();
-  }, [API_BASE_URL, selectedBranchId, token]);
+  }, [API_BASE_URL, selectedBranchId, token, startDate, endDate]);
 
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+
+  const handlePendingPlatesClick = () => {
+    navigate('/number-plates', {
+      state: {
+        status: 'pending',
+        startDate,
+        endDate,
+        branchId: selectedBranchId,
+      },
+    });
+  };
 
   return (
     <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
@@ -140,40 +164,64 @@ function Dashboard() {
           </Typography>
         </Box>
 
-        <FormControl
-          size="small"
-          sx={{ minWidth: 200 }}
-        >
-          <InputLabel id="branch-select-label">Branch</InputLabel>
-          <Select
-            labelId="branch-select-label"
-            id="branch-select"
-            label="Branch"
-            value={selectedBranchId}
-            onChange={(e) => setSelectedBranchId(e.target.value)}
-            disabled={loading && !branches.length}
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', width: { xs: '100%', sm: 'auto' } }}>
+          <TextField
+            size="small"
+            label="Start Date"
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            sx={{ minWidth: 150 }}
+          />
+          <TextField
+            size="small"
+            label="End Date"
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            sx={{ minWidth: 150 }}
+          />
+          <FormControl
+            size="small"
+            sx={{ minWidth: 200 }}
           >
-            {branches.map((branch) => (
-              <MenuItem
-                key={branch.id ?? branch.branch_id}
-                value={String(branch.id ?? branch.branch_id)}
-              >
-                {branch.name ?? branch.branch_name ?? `Branch ${branch.id ?? branch.branch_id}`}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+            <InputLabel id="branch-select-label">Branch</InputLabel>
+            <Select
+              labelId="branch-select-label"
+              id="branch-select"
+              label="Branch"
+              value={selectedBranchId}
+              onChange={(e) => setSelectedBranchId(e.target.value)}
+              disabled={loading && !branches.length}
+            >
+              {branches.map((branch) => (
+                <MenuItem
+                  key={branch.id ?? branch.branch_id}
+                  value={String(branch.id ?? branch.branch_id)}
+                >
+                  {branch.name ?? branch.branch_name ?? `Branch ${branch.id ?? branch.branch_id}`}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
       </Box>
 
       {/* Stats Cards */}
       <Grid container spacing={2} sx={{ mb: { xs: 2, sm: 3 } }}>
         <Grid item xs={12} sm={6} lg={3}>
-          <Card sx={{
-            position: 'relative',
-            overflow: 'visible',
-            height: '100%',
-            minHeight: 140
-          }}>
+          <Card
+            onClick={handlePendingPlatesClick}
+            sx={{
+              position: 'relative',
+              overflow: 'visible',
+              height: '100%',
+              minHeight: 140,
+              cursor: 'pointer',
+            }}
+          >
             <Box
               sx={{
                 position: 'absolute',

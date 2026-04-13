@@ -32,7 +32,7 @@ import {
   Search as SearchIcon,
   Clear as ClearIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 function NumberPlates() {
@@ -41,6 +41,9 @@ function NumberPlates() {
   const [success, setSuccess] = useState('');
   const [numberPlates, setNumberPlates] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [branches, setBranches] = useState([]);
   const [selectedBranchId, setSelectedBranchId] = useState('');
   const [pagination, setPagination] = useState({
@@ -50,8 +53,29 @@ function NumberPlates() {
     totalPages: 0
   });
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, token } = useAuth();
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
+
+  useEffect(() => {
+    const dashboardFilters = location.state;
+    if (!dashboardFilters) return;
+
+    if (dashboardFilters.startDate) {
+      setStartDate(dashboardFilters.startDate);
+    }
+    if (dashboardFilters.endDate) {
+      setEndDate(dashboardFilters.endDate);
+    }
+    if (dashboardFilters.status) {
+      setStatusFilter(dashboardFilters.status);
+    }
+    if (dashboardFilters.branchId) {
+      setSelectedBranchId(String(dashboardFilters.branchId));
+    }
+
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  }, [location.state]);
 
   // Fetch branches for branch filter dropdown
   useEffect(() => {
@@ -104,7 +128,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
       console.log('⚠️ User exists but token is missing');
       setError('Authentication issue: Token missing. Please logout and login again.');
     }
-  }, [user, token, pagination.page, pagination.limit, searchTerm, selectedBranchId]);
+  }, [user, token, pagination.page, pagination.limit, searchTerm, selectedBranchId, startDate, endDate, statusFilter]);
 
   const fetchNumberPlates = async () => {
     try {
@@ -127,6 +151,18 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
       // Branch filter (server-side)
       if (selectedBranchId) {
         params.append('branch_id', selectedBranchId);
+      }
+
+      if (startDate) {
+        params.append('start_date', startDate);
+      }
+
+      if (endDate) {
+        params.append('end_date', endDate);
+      }
+
+      if (statusFilter) {
+        params.append('status', statusFilter);
       }
 
       const response = await fetch(`${BASE_URL}/api/number-plates?${params}`, {
@@ -208,6 +244,9 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
 
   const handleClearSearch = () => {
     setSearchTerm('');
+    setStartDate('');
+    setEndDate('');
+    setStatusFilter('');
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
@@ -296,6 +335,11 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+      {statusFilter && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Showing plates filtered by status: <strong>{statusFilter}</strong>
+        </Alert>
+      )}
 
       {/* Search and Filters */}
       <Card sx={{ mb: 3 }}>
@@ -346,7 +390,35 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={2}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Start Date"
+                type="date"
+                value={startDate}
+                onChange={(event) => {
+                  setStartDate(event.target.value);
+                  setPagination(prev => ({ ...prev, page: 1 }));
+                }}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <TextField
+                fullWidth
+                size="small"
+                label="End Date"
+                type="date"
+                value={endDate}
+                onChange={(event) => {
+                  setEndDate(event.target.value);
+                  setPagination(prev => ({ ...prev, page: 1 }));
+                }}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12} md={2}>
               <TextField
                 select
                 fullWidth
