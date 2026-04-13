@@ -119,7 +119,7 @@ function Dashboard() {
   const handlePendingPlatesClick = () => {
     navigate('/number-plates', {
       state: {
-        status: 'pending',
+        status: 'processed',
         startDate,
         endDate,
         branchId: selectedBranchId,
@@ -212,16 +212,12 @@ function Dashboard() {
       {/* Stats Cards */}
       <Grid container spacing={2} sx={{ mb: { xs: 2, sm: 3 } }}>
         <Grid item xs={12} sm={6} lg={3}>
-          <Card
-            onClick={handlePendingPlatesClick}
-            sx={{
-              position: 'relative',
-              overflow: 'visible',
-              height: '100%',
-              minHeight: 140,
-              cursor: 'pointer',
-            }}
-          >
+          <Card sx={{
+            position: 'relative',
+            overflow: 'visible',
+            height: '100%',
+            minHeight: 140
+          }}>
             <Box
               sx={{
                 position: 'absolute',
@@ -273,12 +269,16 @@ function Dashboard() {
         </Grid>
 
         <Grid item xs={12} sm={6} lg={3}>
-          <Card sx={{
-            position: 'relative',
-            overflow: 'visible',
-            height: '100%',
-            minHeight: 140
-          }}>
+          <Card
+            onClick={handlePendingPlatesClick}
+            sx={{
+              position: 'relative',
+              overflow: 'visible',
+              height: '100%',
+              minHeight: 140,
+              cursor: 'pointer',
+            }}
+          >
             <Box
               sx={{
                 position: 'absolute',

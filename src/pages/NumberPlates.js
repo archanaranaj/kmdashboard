@@ -345,7 +345,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={3}>
               <TextField
                 fullWidth
                 placeholder="Search by plate number..."
@@ -367,7 +367,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={2}>
               <FormControl fullWidth size="small">
                 <InputLabel id="branch-filter-number-plates-label">Branch</InputLabel>
                 <Select
@@ -387,6 +387,27 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
                       {b.name ?? b.branch_name ?? `Branch ${b.id ?? b.branch_id}`}
                     </MenuItem>
                   ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="status-filter-number-plates-label">Status</InputLabel>
+                <Select
+                  labelId="status-filter-number-plates-label"
+                  label="Status"
+                  value={statusFilter}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value);
+                    setPagination(prev => ({ ...prev, page: 1 }));
+                  }}
+                >
+                  <MenuItem value="">All Statuses</MenuItem>
+                  <MenuItem value="pending">pending</MenuItem>
+                  <MenuItem value="processed">processed</MenuItem>
+                  <MenuItem value="rejected">rejected</MenuItem>
+                  <MenuItem value="job_card_created">job_card_created</MenuItem>
+                  <MenuItem value="ignored">ignored</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -418,7 +439,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
-            <Grid item xs={12} md={2}>
+            <Grid item xs={12} md={1}>
               <TextField
                 select
                 fullWidth
