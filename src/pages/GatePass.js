@@ -23,7 +23,8 @@ import {
   Chip,
   Alert,
   CircularProgress,
-  Snackbar
+  Snackbar,
+  TablePagination
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -52,6 +53,8 @@ function GatePass() {
     additionalNotes: ''
   });
   const [submitting, setSubmitting] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(200);
 
   // Fetch all gate passes from API
   // const fetchGatePasses = async () => {
@@ -131,6 +134,15 @@ const fetchGatePasses = async () => {
     setLoading(false);
   }
 };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   useEffect(() => {
     fetchGatePasses();
@@ -487,6 +499,11 @@ const handleCreateGatePass = async () => {
     }
   };
 
+  const paginatedGatePasses = gatePasses.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
@@ -693,7 +710,7 @@ const handleCreateGatePass = async () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {gatePasses.map((gatePass) => (
+                    {paginatedGatePasses.map((gatePass) => (
                       <TableRow key={gatePass.id}>
                         <TableCell>
                           <Typography variant="body2" fontWeight="bold">
@@ -764,6 +781,21 @@ const handleCreateGatePass = async () => {
                   </TableBody>
                 </Table>
               </TableContainer>
+              {gatePasses.length > 0 && (
+                <TablePagination
+                  rowsPerPageOptions={[50, 100, 200, 500]}
+                  component="div"
+                  count={gatePasses.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  labelRowsPerPage="Rows per page:"
+                  labelDisplayedRows={({ from, to, count }) =>
+                    `${from}-${to} of ${count !== -1 ? count : `more than ${to}`}`
+                  }
+                />
+              )}
             </CardContent>
           </Card>
         </Grid>

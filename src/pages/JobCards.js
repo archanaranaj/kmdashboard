@@ -503,7 +503,7 @@ function JobCards() {
   const [branches, setBranches] = useState([]);
   const [selectedBranchId, setSelectedBranchId] = useState('');
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(200);
   const [totalCount, setTotalCount] = useState(0);
   const [customerIdFromUrl, setCustomerIdFromUrl] = useState(null);
   const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
@@ -1033,7 +1033,7 @@ function JobCards() {
 
               {/* Pagination */}
               <TablePagination
-                rowsPerPageOptions={[5, 10, 25, 50]}
+                rowsPerPageOptions={[25, 50, 100, 200]}
                 component="div"
                 count={searchTerm || statusFilter ? filteredJobCards.length : totalCount}
                 rowsPerPage={rowsPerPage}

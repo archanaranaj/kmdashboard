@@ -49,7 +49,7 @@ function NumberPlates() {
   const [selectedBranchId, setSelectedBranchId] = useState('');
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 10,
+    limit: 200,
     total: 0,
     totalPages: 0
   });
@@ -191,7 +191,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
       const platesData = result.data?.plates || [];
       const total = result.data?.total || 0;
       const page = result.data?.page || 1;
-      const limit = result.data?.limit || 10;
+      const limit = result.data?.limit || 200;
       const totalPages = result.data?.totalPages || 1;
 
       console.log('📊 Plates data array:', platesData);
@@ -463,6 +463,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage
                 <option value={25}>25</option>
                 <option value={50}>50</option>
                 <option value={100}>100</option>
+                <option value={200}>200</option>
               </TextField>
             </Grid>
             <Grid item xs={12} md={2}>
