@@ -1971,6 +1971,8 @@ function JobCardView() {
 
   // Check if job card is completed
   const isJobCompleted = jobCard?.status?.toLowerCase() === 'completed';
+  const displayJobCardNumber =
+    jobCard?.sap_job_card_id || jobCard?.busy_job_card_id || jobCard?.job_card_number || '';
 
   // Payment modes
   const paymentModes = [
@@ -2013,12 +2015,12 @@ function JobCardView() {
           setPettyCashForm(prev => ({
             ...prev,
             vehicle_number: result.data.vehicle_number,
-            job_card_number: result.data.job_card_number || ''
+            job_card_number: result.data.sap_job_card_id || result.data.busy_job_card_id || result.data.job_card_number || ''
           }));
           setPettySalesForm(prev => ({
             ...prev,
             vehicle_number: result.data.vehicle_number,
-            job_card_number: result.data.job_card_number || ''
+            job_card_number: result.data.sap_job_card_id || result.data.busy_job_card_id || result.data.job_card_number || ''
           }));
         } else {
           throw new Error('Job card not found');
@@ -2044,9 +2046,9 @@ const fetchPettyCashEntries = async () => {
     let url = `${BASE_URL}/api/cash/petty`;
     const params = new URLSearchParams();
     
-    if (jobCard?.job_card_number) {
-      params.append('job_card_number', jobCard.job_card_number);
-      console.log(`🔍 Fetching petty cash for job card number: ${jobCard.job_card_number}`);
+    if (displayJobCardNumber) {
+      params.append('job_card_number', displayJobCardNumber);
+      console.log(`🔍 Fetching petty cash for job card number: ${displayJobCardNumber}`);
     } else {
       console.log('ℹ️ No job card number assigned, skipping petty cash fetch');
       setPettyCashEntries([]);
@@ -2102,9 +2104,9 @@ const fetchPettySalesEntries = async () => {
     let url = `${BASE_URL}/api/cash/sales`;
     const params = new URLSearchParams();
     
-    if (jobCard?.job_card_number) {
-      params.append('job_card_number', jobCard.job_card_number);
-      console.log(`🔍 Fetching petty sales for job card number: ${jobCard.job_card_number}`);
+    if (displayJobCardNumber) {
+      params.append('job_card_number', displayJobCardNumber);
+      console.log(`🔍 Fetching petty sales for job card number: ${displayJobCardNumber}`);
     } else {
       console.log('ℹ️ No job card number assigned, skipping petty sales fetch');
       setPettySalesEntries([]);
@@ -2287,11 +2289,11 @@ const fetchGatePassEntries = async () => {
           // Update forms with new job card number
           setPettyCashForm(prev => ({
             ...prev,
-            job_card_number: refreshResult.data.job_card_number
+            job_card_number: refreshResult.data.sap_job_card_id || refreshResult.data.busy_job_card_id || refreshResult.data.job_card_number || ''
           }));
           setPettySalesForm(prev => ({
             ...prev,
-            job_card_number: refreshResult.data.job_card_number
+            job_card_number: refreshResult.data.sap_job_card_id || refreshResult.data.busy_job_card_id || refreshResult.data.job_card_number || ''
           }));
           // Refresh all entries
           fetchPettyCashEntries();
@@ -2661,9 +2663,9 @@ const fetchGatePassEntries = async () => {
                     </Typography>
                     <Typography variant="h6" color="textSecondary">
                       Job Card #JC-{jobCard.id.toString().padStart(4, '0')}
-                      {jobCard.job_card_number && (
+                      {displayJobCardNumber && (
                         <Chip 
-                          label={`Assigned #: ${jobCard.job_card_number}`} 
+                          label={`Assigned #: ${displayJobCardNumber}`} 
                           color="success" 
                           size="small" 
                           sx={{ ml: 1 }}
@@ -2671,9 +2673,9 @@ const fetchGatePassEntries = async () => {
                       )}
                     </Typography>
                     {/* Show assigned number prominently for all users */}
-                    {jobCard.job_card_number && (
+                    {displayJobCardNumber && (
                       <Typography variant="h5" color="success.main" sx={{ mt: 1 }}>
-                        📋 Assigned Number: {jobCard.job_card_number}
+                        📋 Assigned Number: {displayJobCardNumber}
                       </Typography>
                     )}
                   </Box>
@@ -2835,7 +2837,7 @@ const fetchGatePassEntries = async () => {
                     </Tabs>
                   </Box>
 
-                  {!jobCard.job_card_number && activeTab !== 2 ? (
+                  {!displayJobCardNumber && activeTab !== 2 ? (
                     <Box sx={{ textAlign: 'center', py: 4 }}>
                       <Alert severity="info">
                         <Typography variant="body1" gutterBottom>
@@ -2867,7 +2869,7 @@ const fetchGatePassEntries = async () => {
                             <Typography variant="h6" color="primary" fontWeight="bold">
                               💰 Petty Cash Entries
                               <Typography variant="body2" color="textSecondary">
-                                Filtered by Job Card Number: {jobCard.job_card_number}
+                                Filtered by Job Card Number: {displayJobCardNumber}
                               </Typography>
                             </Typography>
                             {!isJobCompleted && (
@@ -2919,7 +2921,7 @@ const fetchGatePassEntries = async () => {
                           ) : (
                             <Box sx={{ textAlign: 'center', py: 4 }}>
                               <Typography variant="body1" color="textSecondary">
-                                No petty cash entries found for job card number: {jobCard.job_card_number}
+                                No petty cash entries found for job card number: {displayJobCardNumber}
                               </Typography>
                             </Box>
                           )}
@@ -2933,7 +2935,7 @@ const fetchGatePassEntries = async () => {
                             <Typography variant="h6" color="primary" fontWeight="bold">
                               💳 Petty Sales Entries
                               <Typography variant="body2" color="textSecondary">
-                                Filtered by Job Card Number: {jobCard.job_card_number}
+                                Filtered by Job Card Number: {displayJobCardNumber}
                               </Typography>
                             </Typography>
                             {!isJobCompleted && (
@@ -2994,7 +2996,7 @@ const fetchGatePassEntries = async () => {
                           ) : (
                             <Box sx={{ textAlign: 'center', py: 4 }}>
                               <Typography variant="body1" color="textSecondary">
-                                No sales entries found for job card number: {jobCard.job_card_number}
+                                No sales entries found for job card number: {displayJobCardNumber}
                               </Typography>
                             </Box>
                           )}
@@ -3141,10 +3143,10 @@ const fetchGatePassEntries = async () => {
                       size="large"
                       startIcon={<AssignmentIcon />}
                       onClick={handleOpenAssignDialog}
-                      disabled={!!jobCard.job_card_number}
+                      disabled={!!displayJobCardNumber}
                       fullWidth
                     >
-                      {jobCard.job_card_number ? 'Number Assigned' : 'Assign Job Card Number'}
+                      {displayJobCardNumber ? 'Number Assigned' : 'Assign Job Card Number'}
                     </Button>
                   )}
                   
@@ -3172,15 +3174,15 @@ const fetchGatePassEntries = async () => {
             {/* Assigned Number Card - NOW FOR ALL USERS */}
             {/* TEMPORARILY CHANGED: Show for all users */}
             {/* {isAccountsDept && ( */}
-            <Card sx={{ mb: 3, boxShadow: 3, border: '2px solid', borderColor: jobCard.job_card_number ? 'success.main' : 'warning.main' }}>
+            <Card sx={{ mb: 3, boxShadow: 3, border: '2px solid', borderColor: displayJobCardNumber ? 'success.main' : 'warning.main' }}>
               <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom color={jobCard.job_card_number ? 'success.main' : 'warning.main'} fontWeight="bold">
+                <Typography variant="h6" gutterBottom color={displayJobCardNumber ? 'success.main' : 'warning.main'} fontWeight="bold">
                   📋 Job Card Number
                 </Typography>
-                {jobCard.job_card_number ? (
+                {displayJobCardNumber ? (
                   <Box sx={{ textAlign: 'center', py: 2 }}>
                     <Typography variant="h3" color="success.main" fontWeight="bold">
-                      {jobCard.job_card_number}
+                      {displayJobCardNumber}
                     </Typography>
                     <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
                       Assigned Job Card Number
@@ -3374,9 +3376,9 @@ const fetchGatePassEntries = async () => {
                     <strong>Last Updated:</strong> {formatDate(jobCard.updated_at)}
                   </Typography>
                   {/* Show assigned number in system info for all users */}
-                  {jobCard.job_card_number && (
+                  {displayJobCardNumber && (
                     <Typography variant="body2" gutterBottom>
-                      <strong>Assigned Number:</strong> {jobCard.job_card_number}
+                      <strong>Assigned Number:</strong> {displayJobCardNumber}
                     </Typography>
                   )}
                 </Box>
@@ -3671,7 +3673,7 @@ const fetchGatePassEntries = async () => {
                 <strong>Job Card ID:</strong> {jobCard.id}
               </Typography>
               <Typography variant="body1">
-                <strong>Job Card Number:</strong> {jobCard.job_card_number || 'Not assigned'}
+                <strong>Job Card Number:</strong> {displayJobCardNumber || 'Not assigned'}
               </Typography>
             </Box>
             

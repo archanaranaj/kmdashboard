@@ -508,6 +508,9 @@ function JobCards() {
   const [customerIdFromUrl, setCustomerIdFromUrl] = useState(null);
   const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://gms-api.kmgarage.com';
 
+  const getDisplayJobCardNumber = (jobCard) =>
+    jobCard?.sap_job_card_id || jobCard?.busy_job_card_id || jobCard?.job_card_number;
+
   // Extract customer_id from URL query parameters
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -675,9 +678,10 @@ function JobCards() {
 
   // Filter job cards based on search term and status (client-side filtering as fallback)
   const filteredJobCards = jobCards.filter(jobCard => {
+    const displayJobCardNumber = getDisplayJobCardNumber(jobCard);
     const matchesSearch = jobCard.vehicle_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          jobCard.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         jobCard.job_card_number?.toString().includes(searchTerm) ||
+                         displayJobCardNumber?.toString().includes(searchTerm) ||
                          (jobCard.customer_id && jobCard.customer_id.toString().includes(searchTerm));
     const matchesStatus = !statusFilter || jobCard.status === statusFilter;
     
@@ -953,7 +957,7 @@ function JobCards() {
                         <TableRow key={jobCard.id} hover>
                           <TableCell>
                             <Typography variant="subtitle2" fontWeight="bold">
-                              {jobCard.job_card_number || 'N/A'}
+                              {getDisplayJobCardNumber(jobCard) || 'N/A'}
                             </Typography>
                           </TableCell>
                           <TableCell>
