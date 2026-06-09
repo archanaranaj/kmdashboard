@@ -2574,15 +2574,15 @@ const fetchGatePassEntries = async () => {
   const getJobCardStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'active':
-        return 'primary';
+        return 'primary.main';
       case 'assigned':
-        return 'warning';
+        return 'warning.main';
       case 'completed':
-        return 'success';
+        return 'success.main';
       case 'cancelled':
-        return 'error';
+        return 'error.main';
       default:
-        return 'default';
+        return 'text.secondary';
     }
   };
 
@@ -2693,12 +2693,13 @@ const fetchGatePassEntries = async () => {
                       </Typography>
                     )}
                   </Box>
-                  <Chip 
-                    label={getJobCardStatusDisplay(jobCard.status)} 
-                    color={getJobCardStatusColor(jobCard.status)}
-                    size="large"
-                    sx={{ fontSize: '1rem', px: 2 }}
-                  />
+                  <Typography
+                    variant="h6"
+                    fontWeight="bold"
+                    sx={{ color: getJobCardStatusColor(jobCard.status) }}
+                  >
+                    {getJobCardStatusDisplay(jobCard.status)}
+                  </Typography>
                 </Box>
 
                 <Divider sx={{ mb: 4 }} />

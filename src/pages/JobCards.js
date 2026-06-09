@@ -750,18 +750,18 @@ function JobCards() {
     }
   };
 
-  const getStatusStyles = (status) => {
+  const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'active':
-        return { backgroundColor: 'primary.light', color: 'primary.dark' };
+        return 'primary.main';
       case 'assigned':
-        return { backgroundColor: 'warning.light', color: 'warning.dark' };
+        return 'warning.main';
       case 'completed':
-        return { backgroundColor: 'success.light', color: 'success.dark' };
+        return 'success.main';
       case 'cancelled':
-        return { backgroundColor: 'error.light', color: 'error.dark' };
+        return 'error.main';
       default:
-        return { backgroundColor: 'grey.100', color: 'grey.800' };
+        return 'text.secondary';
     }
   };
 
@@ -1004,19 +1004,13 @@ function JobCards() {
                           <TableCell>{formatDate(jobCard.date)}</TableCell>
                           <TableCell>{formatDate(jobCard.promised_delivery_date)}</TableCell>
                           <TableCell>
-                            <Box
-                              sx={{
-                                display: 'inline-block',
-                                px: 1,
-                                py: 0.5,
-                                borderRadius: 1,
-                                fontSize: '0.75rem',
-                                fontWeight: 'bold',
-                                ...getStatusStyles(getStatus(jobCard)),
-                              }}
+                            <Typography
+                              variant="body2"
+                              fontWeight="bold"
+                              sx={{ color: getStatusColor(getStatus(jobCard)) }}
                             >
                               {getStatusDisplay(getStatus(jobCard))}
-                            </Box>
+                            </Typography>
                           </TableCell>
                           <TableCell>
                             <IconButton color="primary" onClick={() => handleOpenView(jobCard)} title="View">
