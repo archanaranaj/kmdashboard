@@ -2571,23 +2571,37 @@ const fetchGatePassEntries = async () => {
     return serviceAdvisor.branch.name || 'Unknown Branch';
   };
 
-  const getStatusColor = (status) => {
+  const getJobCardStatusColor = (status) => {
     switch (status?.toLowerCase()) {
+      case 'active':
+        return 'primary';
+      case 'assigned':
+        return 'warning';
       case 'completed':
         return 'success';
-      case 'in progress':
-      case 'active':
-        return 'warning';
-      case 'pending':
-        return 'default';
-      case 'delivered':
-        return 'info';
+      case 'cancelled':
+        return 'error';
       default:
         return 'default';
     }
   };
 
-  const getStatusDisplay = (status) => {
+  const getJobCardStatusDisplay = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return 'Created';
+      case 'assigned':
+        return 'In-Progress';
+      case 'completed':
+        return 'Delivered';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status || 'N/A';
+    }
+  };
+
+  const getGatePassStatusDisplay = (status) => {
     if (!status) return 'Pending';
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
@@ -2680,8 +2694,8 @@ const fetchGatePassEntries = async () => {
                     )}
                   </Box>
                   <Chip 
-                    label={getStatusDisplay(jobCard.status)} 
-                    color={getStatusColor(jobCard.status)}
+                    label={getJobCardStatusDisplay(jobCard.status)} 
+                    color={getJobCardStatusColor(jobCard.status)}
                     size="large"
                     sx={{ fontSize: '1rem', px: 2 }}
                   />
@@ -3052,7 +3066,7 @@ const fetchGatePassEntries = async () => {
                                       <TableCell>{entry.vehicle_number}</TableCell>
                                       <TableCell>
                                         <Chip 
-                                          label={getStatusDisplay(entry.status)} 
+                                          label={getGatePassStatusDisplay(entry.status)} 
                                           color={getGatePassStatusColor(entry.status)}
                                           size="small"
                                         />

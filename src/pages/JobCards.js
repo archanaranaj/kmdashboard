@@ -733,9 +733,36 @@ function JobCards() {
     return details.join(' ') || 'N/A';
   };
 
-  // Helper function to safely render status
-  const getStatus = (jobCard) => {
-    return jobCard.status || 'pending';
+  const getStatus = (jobCard) => jobCard.status || 'active';
+
+  const getStatusDisplay = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return 'Created';
+      case 'assigned':
+        return 'In-Progress';
+      case 'completed':
+        return 'Delivered';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status || 'N/A';
+    }
+  };
+
+  const getStatusStyles = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return { backgroundColor: 'primary.light', color: 'primary.dark' };
+      case 'assigned':
+        return { backgroundColor: 'warning.light', color: 'warning.dark' };
+      case 'completed':
+        return { backgroundColor: 'success.light', color: 'success.dark' };
+      case 'cancelled':
+        return { backgroundColor: 'error.light', color: 'error.dark' };
+      default:
+        return { backgroundColor: 'grey.100', color: 'grey.800' };
+    }
   };
 
   // Check if job card is completed
@@ -849,9 +876,10 @@ function JobCards() {
                 variant="outlined"
               >
                 <MenuItem value="">All Status</MenuItem>
-                <MenuItem value="pending">Assigned</MenuItem>
-                <MenuItem value="active">Active</MenuItem>
-                <MenuItem value="completed">Completed</MenuItem>
+                <MenuItem value="active">Created</MenuItem>
+                <MenuItem value="assigned">In-Progress</MenuItem>
+                <MenuItem value="completed">Delivered</MenuItem>
+                <MenuItem value="cancelled">Cancelled</MenuItem>
               </TextField>
             </Grid>
 
@@ -982,22 +1010,12 @@ function JobCards() {
                                 px: 1,
                                 py: 0.5,
                                 borderRadius: 1,
-                                backgroundColor: 
-                                  getStatus(jobCard) === 'completed' ? 'success.light' :
-                                  getStatus(jobCard) === 'active' ? 'primary.light' :
-                                  getStatus(jobCard) === 'in_progress' ? 'warning.light' :
-                                  getStatus(jobCard) === 'delivered' ? 'info.light' : 'grey.100',
-                                color: 
-                                  getStatus(jobCard) === 'completed' ? 'success.dark' :
-                                  getStatus(jobCard) === 'active' ? 'primary.dark' :
-                                  getStatus(jobCard) === 'in_progress' ? 'warning.dark' :
-                                  getStatus(jobCard) === 'delivered' ? 'info.dark' : 'grey.800',
                                 fontSize: '0.75rem',
                                 fontWeight: 'bold',
-                                textTransform: 'capitalize'
+                                ...getStatusStyles(getStatus(jobCard)),
                               }}
                             >
-                              {getStatus(jobCard)}
+                              {getStatusDisplay(getStatus(jobCard))}
                             </Box>
                           </TableCell>
                           <TableCell>
